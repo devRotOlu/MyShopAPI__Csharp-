@@ -10,3 +10,16 @@ C:\Users\HP\source\repos\MyShopAPI.Data\obj\Debug\net8.0\MyShopAPI.Data.dll
 C:\Users\HP\source\repos\MyShopAPI.Data\obj\Debug\net8.0\refint\MyShopAPI.Data.dll
 C:\Users\HP\source\repos\MyShopAPI.Data\obj\Debug\net8.0\MyShopAPI.Data.pdb
 C:\Users\HP\source\repos\MyShopAPI.Data\obj\Debug\net8.0\ref\MyShopAPI.Data.dll
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\bin\Debug\net8.0\MyShopAPI.Data.deps.json
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\bin\Debug\net8.0\MyShopAPI.Data.dll
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\bin\Debug\net8.0\MyShopAPI.Data.pdb
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\obj\Debug\net8.0\MyShopAPI.Data.csproj.AssemblyReference.cache
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\obj\Debug\net8.0\MyShopAPI.Data.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\obj\Debug\net8.0\MyShopAPI.Data.AssemblyInfoInputs.cache
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\obj\Debug\net8.0\MyShopAPI.Data.AssemblyInfo.cs
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\obj\Debug\net8.0\MyShopAPI.Data.csproj.CoreCompileInputs.cache
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\obj\Debug\net8.0\MyShopAPI.Data.sourcelink.json
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\obj\Debug\net8.0\MyShopAPI.Data.dll
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\obj\Debug\net8.0\refint\MyShopAPI.Data.dll
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\obj\Debug\net8.0\MyShopAPI.Data.pdb
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Data\obj\Debug\net8.0\ref\MyShopAPI.Data.dll

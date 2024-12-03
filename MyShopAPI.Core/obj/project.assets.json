@@ -81,6 +81,36 @@
           }
         }
       },
+      "EntityFrameworkCore.Triggered/3.2.2": {
+        "type": "package",
+        "dependencies": {
+          "EntityFrameworkCore.Triggered.Abstractions": "3.2.2",
+          "Microsoft.EntityFrameworkCore": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/EntityFrameworkCore.Triggered.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/EntityFrameworkCore.Triggered.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "EntityFrameworkCore.Triggered.Abstractions/3.2.2": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/EntityFrameworkCore.Triggered.Abstractions.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/EntityFrameworkCore.Triggered.Abstractions.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.AspNetCore.Cryptography.Internal/8.0.11": {
         "type": "package",
         "compile": {
@@ -2011,6 +2041,32 @@
         "lib/netstandard1.3/CloudinaryDotNet.xml",
         "lib/netstandard2.0/CloudinaryDotNet.dll",
         "lib/netstandard2.0/CloudinaryDotNet.xml"
+      ]
+    },
+    "EntityFrameworkCore.Triggered/3.2.2": {
+      "sha512": "TtbhqPZSiGW74EXgmCL9qoaBAfDkZdTc89T2/OCZ13JbsTOhzKkUF1iqUWIuPCrIgwDhsiRD/pe+AZApfYJQPw==",
+      "type": "package",
+      "path": "entityframeworkcore.triggered/3.2.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "entityframeworkcore.triggered.3.2.2.nupkg.sha512",
+        "entityframeworkcore.triggered.nuspec",
+        "lib/net6.0/EntityFrameworkCore.Triggered.dll",
+        "lib/net6.0/EntityFrameworkCore.Triggered.xml"
+      ]
+    },
+    "EntityFrameworkCore.Triggered.Abstractions/3.2.2": {
+      "sha512": "gMBLJlBeW5X4prp6San9Qo8sSxvLd3KJUOfIQxmLtOpNWVmNdfVgDR75gYTqblejg/Ci8eDqy0bUucxUcYyukA==",
+      "type": "package",
+      "path": "entityframeworkcore.triggered.abstractions/3.2.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "entityframeworkcore.triggered.abstractions.3.2.2.nupkg.sha512",
+        "entityframeworkcore.triggered.abstractions.nuspec",
+        "lib/net6.0/EntityFrameworkCore.Triggered.Abstractions.dll",
+        "lib/net6.0/EntityFrameworkCore.Triggered.Abstractions.xml"
       ]
     },
     "Microsoft.AspNetCore.Cryptography.Internal/8.0.11": {
@@ -5854,6 +5910,7 @@
   "projectFileDependencyGroups": {
     "net8.0": [
       "AutoMapper >= 13.0.1",
+      "EntityFrameworkCore.Triggered >= 3.2.2",
       "Microsoft.EntityFrameworkCore >= 9.0.0",
       "MyShopAPI.Data >= 1.0.0",
       "MyShopAPI.Services >= 1.0.0",
@@ -5920,6 +5977,10 @@
           "AutoMapper": {
             "target": "Package",
             "version": "[13.0.1, )"
+          },
+          "EntityFrameworkCore.Triggered": {
+            "target": "Package",
+            "version": "[3.2.2, )"
           },
           "Microsoft.EntityFrameworkCore": {
             "target": "Package",

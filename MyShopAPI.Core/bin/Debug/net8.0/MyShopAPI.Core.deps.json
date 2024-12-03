@@ -9,6 +9,7 @@
       "MyShopAPI.Core/1.0.0": {
         "dependencies": {
           "AutoMapper": "13.0.1",
+          "EntityFrameworkCore.Triggered": "3.2.2",
           "Microsoft.EntityFrameworkCore": "9.0.0",
           "MyShopAPI.Data": "1.0.0",
           "MyShopAPI.Services": "1.0.0",
@@ -74,6 +75,26 @@
           "lib/netstandard2.0/CloudinaryDotNet.dll": {
             "assemblyVersion": "1.26.2.0",
             "fileVersion": "1.26.2.0"
+          }
+        }
+      },
+      "EntityFrameworkCore.Triggered/3.2.2": {
+        "dependencies": {
+          "EntityFrameworkCore.Triggered.Abstractions": "3.2.2",
+          "Microsoft.EntityFrameworkCore": "9.0.0"
+        },
+        "runtime": {
+          "lib/net6.0/EntityFrameworkCore.Triggered.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "EntityFrameworkCore.Triggered.Abstractions/3.2.2": {
+        "runtime": {
+          "lib/net6.0/EntityFrameworkCore.Triggered.Abstractions.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
           }
         }
       },
@@ -1150,6 +1171,20 @@
       "sha512": "sha512-JUDOUKa7T+h0nmMhBdBxCkCldN4/DIZLOlh5p30KrcBX6Spral6vxTWhzk6OH2pGd8MGL5R379EsK7tJr/IQpw==",
       "path": "cloudinarydotnet/1.26.2",
       "hashPath": "cloudinarydotnet.1.26.2.nupkg.sha512"
+    },
+    "EntityFrameworkCore.Triggered/3.2.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-TtbhqPZSiGW74EXgmCL9qoaBAfDkZdTc89T2/OCZ13JbsTOhzKkUF1iqUWIuPCrIgwDhsiRD/pe+AZApfYJQPw==",
+      "path": "entityframeworkcore.triggered/3.2.2",
+      "hashPath": "entityframeworkcore.triggered.3.2.2.nupkg.sha512"
+    },
+    "EntityFrameworkCore.Triggered.Abstractions/3.2.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-gMBLJlBeW5X4prp6San9Qo8sSxvLd3KJUOfIQxmLtOpNWVmNdfVgDR75gYTqblejg/Ci8eDqy0bUucxUcYyukA==",
+      "path": "entityframeworkcore.triggered.abstractions/3.2.2",
+      "hashPath": "entityframeworkcore.triggered.abstractions.3.2.2.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Cryptography.Internal/8.0.11": {
       "type": "package",

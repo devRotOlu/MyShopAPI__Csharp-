@@ -10,6 +10,7 @@
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
     <PackageReference Include="X.PagedList.Mvc.Core" Version="10.2.1" />
+	<PackageReference Include="EntityFrameworkCore.Triggered" Version="3.2.2" />
   </ItemGroup>
 
   <ItemGroup>

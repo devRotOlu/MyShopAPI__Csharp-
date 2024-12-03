@@ -1,14 +1,16 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyShopAPI.Core.EntityDTO.ProductReviewDTO;
 using MyShopAPI.Core.EntityDTO.ProoductDTO;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
 using MyShopAPI.Services.Image;
-using System.Security.Claims;
 
 namespace MyShopAPI.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
@@ -60,7 +62,7 @@ namespace MyShopAPI.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetProducts()
         {
@@ -68,11 +70,45 @@ namespace MyShopAPI.Controllers
 
             if (results == null)
             {
-                return NoContent();
+                return BadRequest();
             }
 
             var products = _mapper.Map<IEnumerable<GetProductDTO>>(results);
             return Ok(products);
+        }
+
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AddReview([FromBody] AddReviewDTO reviewDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var review = _mapper.Map<ProductReview>(reviewDTO);
+
+            await _unitOfWork.ProductReviews.Insert(review);
+            await _unitOfWork.Save();
+
+            return Created();
+        }
+
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ViewReviews([FromQuery] int productId)
+        {
+            if (productId <= 0) return BadRequest();
+
+            var result = await _unitOfWork.ProductReviews.GetAll(review => review.ProductId == productId);
+
+            var reviews = _mapper.Map<ReviewDTO>(result);
+
+            return Ok(reviews);
         }
     }
 }

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "eRhOoCTSDPI=",
+  "dgSpecHash": "Rsc2NSrTYoE=",
   "success": true,
   "projectFilePath": "C:\\Users\\HP\\Desktop\\CSharpProject\\MyShopAPISolution\\MyShopAPI.Core\\MyShopAPI.Core.csproj",
   "expectedPackageFiles": [
@@ -8,6 +8,8 @@
     "C:\\Users\\HP\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\cloudinarydotnet\\1.26.2\\cloudinarydotnet.1.26.2.nupkg.sha512",
+    "C:\\Users\\HP\\.nuget\\packages\\entityframeworkcore.triggered\\3.2.2\\entityframeworkcore.triggered.3.2.2.nupkg.sha512",
+    "C:\\Users\\HP\\.nuget\\packages\\entityframeworkcore.triggered.abstractions\\3.2.2\\entityframeworkcore.triggered.abstractions.3.2.2.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\8.0.11\\microsoft.aspnetcore.cryptography.internal.8.0.11.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\microsoft.aspnetcore.cryptography.keyderivation\\8.0.11\\microsoft.aspnetcore.cryptography.keyderivation.8.0.11.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\microsoft.aspnetcore.http.features\\5.0.17\\microsoft.aspnetcore.http.features.5.0.17.nupkg.sha512",

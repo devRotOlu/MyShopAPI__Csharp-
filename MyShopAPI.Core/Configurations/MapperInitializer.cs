@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MyShopAPI.Core.EntityDTO;
 using MyShopAPI.Core.EntityDTO.CartDTO;
+using MyShopAPI.Core.EntityDTO.ProductReviewDTO;
 using MyShopAPI.Core.EntityDTO.ProoductDTO;
 using MyShopAPI.Core.EntityDTO.UserDTO;
 using MyShopAPI.Data.Entities;
@@ -20,6 +21,8 @@ namespace MyShopAPI.Core.Configurations
             CreateMap<Product, AddProductDTO>().ReverseMap();
             CreateMap<Product, GetProductDTO>().ReverseMap();
             CreateMap<Image, ImageDTO>().ReverseMap();
+            CreateMap<ProductReview,AddReviewDTO>().ReverseMap();
+            CreateMap<ProductReview,ReviewDTO>().ReverseMap();
         }
     }
 }
