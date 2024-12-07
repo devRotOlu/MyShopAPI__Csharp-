@@ -7,6 +7,7 @@ using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace MyShopAPI.Core.AuthManager
@@ -127,7 +128,7 @@ namespace MyShopAPI.Core.AuthManager
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name,AuthManager._user.UserName!),
-                new Claim(JwtRegisteredClaimNames.Aud, _configuration["Jwt:Issuer"]!),
+                new Claim(JwtRegisteredClaimNames.Aud, _configuration["Jwt:Issuer"]!)
             };
 
             var roles = await _userManager.GetRolesAsync(AuthManager._user);
@@ -156,6 +157,16 @@ namespace MyShopAPI.Core.AuthManager
                 );
 
             return token;
+        }
+
+        public string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
         }
 
     }

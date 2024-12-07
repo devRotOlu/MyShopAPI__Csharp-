@@ -26,7 +26,7 @@ namespace MyShopAPI.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        [HttpPost]
+        [HttpPost("add-product")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> AddProduct([FromForm] AddProductDTO productDTO)
@@ -38,7 +38,7 @@ namespace MyShopAPI.Controllers
 
             var product = _mapper.Map<Product>(productDTO);
 
-            product.Images = new List<Image>();
+            product.Images = new List<ProductImage>();
 
             foreach (var file in productDTO.Photos)
             {
@@ -46,7 +46,7 @@ namespace MyShopAPI.Controllers
 
                 if (photo.Error != null) return BadRequest(photo.Error.Message);
 
-                product.Images.Add(new Image
+                product.Images.Add(new ProductImage
                 {
                     Url = photo.SecureUrl.AbsoluteUri,
                     PublicId = photo.PublicId,
@@ -60,7 +60,7 @@ namespace MyShopAPI.Controllers
             return Created();
         }
 
-        [HttpGet]
+        [HttpGet("list-products")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -77,7 +77,7 @@ namespace MyShopAPI.Controllers
             return Ok(products);
         }
 
-        [HttpPost]
+        [HttpPost("add-review")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -96,7 +96,7 @@ namespace MyShopAPI.Controllers
             return Created();
         }
 
-        [HttpGet]
+        [HttpGet("list-reviews")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -104,9 +104,9 @@ namespace MyShopAPI.Controllers
         {
             if (productId <= 0) return BadRequest();
 
-            var result = await _unitOfWork.ProductReviews.GetAll(review => review.ProductId == productId);
+            var result = await _unitOfWork.ProductReviews.GetAll(review => review.ProductId == productId,include:review=>review.Include(review=>review.Reviewer));
 
-            var reviews = _mapper.Map<ReviewDTO>(result);
+            var reviews = _mapper.Map<IEnumerable<ReviewDTO>>(result);
 
             return Ok(reviews);
         }

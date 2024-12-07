@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using MyShopAPI.Core.AuthManager;
+using MyShopAPI.Core.EntityDTO;
 using MyShopAPI.Core.EntityDTO.UserDTO;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
-using System.Security.Claims;
+using MyShopAPI.Services.Image;
 
 namespace MyShopAPI.Controllers
 {
@@ -17,13 +18,15 @@ namespace MyShopAPI.Controllers
         private readonly IAuthManager _authManager;
         private readonly IConfiguration _configuration;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IPhotoService _photoService;
 
-        public AccountController(IMapper mapper, IAuthManager authManager, IConfiguration configuration, IUnitOfWork unitOfWork)
+        public AccountController(IMapper mapper, IAuthManager authManager, IConfiguration configuration, IUnitOfWork unitOfWork, IPhotoService photoService)
         {
             _mapper = mapper;
             _authManager = authManager;
             _configuration = configuration;
             _unitOfWork = unitOfWork;
+            _photoService = photoService;
         }
 
         [HttpPost("signup")]
@@ -40,6 +43,17 @@ namespace MyShopAPI.Controllers
             var user = _mapper.Map<Customer>(signUpDTO);
 
             user.UserName = signUpDTO.Email;
+
+            if (signUpDTO.ProfilePicture != null)
+            {
+                var photo = await _photoService.AddPhotoAsync(signUpDTO.ProfilePicture);
+
+                if (photo.Error == null)
+                {
+                    user.ProfilePictureUrI = photo.SecureUrl.AbsoluteUri;
+                    user.ProfilePicturePublicId = photo.PublicId;
+                }
+            }
 
             var result = await _authManager.CreateAsync(user, signUpDTO.Password);
 
@@ -130,13 +144,33 @@ namespace MyShopAPI.Controllers
                 return Unauthorized();
             }
 
-            var userName = User.FindFirstValue(ClaimTypes.Name);
-
-            var customer = await _unitOfWork.Customers.Get(customer=> customer.Email == userName);
+            var customer = await _unitOfWork.Customers.Get(customer => customer.Email == userDTO.Email);
 
             var userInfo = _mapper.Map<CustomerDTO>(customer);
 
-            return Accepted(new { token = await _authManager.CreateToken(),user = userInfo });
+            var refreshToken = _authManager.GenerateRefreshToken();
+
+            var refreshTokenObj = new RefreshToken
+            {
+                CustomerId = customer.Id,
+                Token = refreshToken
+            };
+
+            var tokenObj = await _unitOfWork.RefreshTokens.Get(item => item.CustomerId == customer.Id);
+
+            if (tokenObj == null) 
+            {
+                await _unitOfWork.RefreshTokens.Insert(refreshTokenObj);
+            }
+            else
+            {
+                refreshTokenObj.Id = tokenObj.Id;
+                _unitOfWork.RefreshTokens.Update(refreshTokenObj);
+            }
+
+            await _unitOfWork.Save();
+
+            return Accepted(new { accessToken = await _authManager.CreateToken(), user = userInfo, refreshToken});
         }
 
         [HttpPost("password-reset-email")]
@@ -180,6 +214,34 @@ namespace MyShopAPI.Controllers
             }
 
             return Ok();
+        }
+
+        [HttpPost("token_refresh")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RefreshToken([FromBody] TokenDTO tokenDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _unitOfWork.RefreshTokens.Get(item=> item.CustomerId == tokenDTO.CustomerId && item.Token == tokenDTO.RefreshToken);
+
+            if (result == null || result.ExpirationTime.CompareTo(DateTime.Now) < 0)
+            {
+                return BadRequest();
+            }
+
+            var refreshToken = _authManager.GenerateRefreshToken();
+
+            var refreshTokenObj = _mapper.Map<RefreshToken>(tokenDTO);
+            refreshTokenObj.Id = result.Id;
+            refreshTokenObj.Token = refreshToken;
+         
+            _unitOfWork.RefreshTokens.Update(refreshTokenObj);
+            await _unitOfWork.Save();
+
+            return Ok(new { accessToken = await _authManager.CreateToken(), refreshToken});
         }
     }
 }

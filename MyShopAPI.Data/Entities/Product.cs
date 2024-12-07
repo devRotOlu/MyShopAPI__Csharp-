@@ -15,7 +15,7 @@ namespace MyShopAPI.Data.Entities
         [Required]
         public uint Quantity { get; set; }
         [Required]
-        public ICollection<Image> Images { get; set; } = null!;
+        public ICollection<ProductImage> Images { get; set; } = null!;
         [Column(TypeName = "decimal(3,2)")]
         public decimal AverageRating { get; set; }
     }

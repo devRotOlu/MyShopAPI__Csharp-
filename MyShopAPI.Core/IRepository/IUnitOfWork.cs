@@ -7,8 +7,9 @@ namespace MyShopAPI.Core.IRepository
         IGenericRepository<Customer> Customers { get; set; }
         IGenericRepository<Cart> Carts {  get; set; }
         IGenericRepository<Product> Products { get; set; }
-        IGenericRepository<Image> Images { get; set; }
+        IGenericRepository<ProductImage> ProductImages { get; set; }
         IGenericRepository<ProductReview> ProductReviews { get; set; }
+        IGenericRepository<RefreshToken> RefreshTokens { get; set; }
         Task Save();
     }
 }

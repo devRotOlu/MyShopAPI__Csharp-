@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 namespace MyShopAPI.Core.EntityDTO.UserDTO
@@ -23,5 +24,7 @@ namespace MyShopAPI.Core.EntityDTO.UserDTO
 
         [Required]
         public IEnumerable<string> Roles { get; set; } = null!;
+
+        public IFormFile ProfilePicture { get; set; } = null!;
     }
 }

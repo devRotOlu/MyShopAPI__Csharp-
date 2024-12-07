@@ -2,10 +2,10 @@
 
 namespace MyShopAPI.Core.EntityDTO.ProductReviewDTO
 {
-    public class AddReviewDTO:ReviewDTO
+    public class AddReviewDTO:ProductReviewDTO
     {
         [Required]
-        public string CustomerId { get; set; } = null!;
+        public string ReviewerId { get; set; } = null!;
         [Required]
         public int ProductId { get; set; }
     }

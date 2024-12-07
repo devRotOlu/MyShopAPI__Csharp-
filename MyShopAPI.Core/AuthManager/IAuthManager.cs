@@ -20,5 +20,6 @@ namespace MyShopAPI.Core.AuthManager
         Task<Customer> GetUserByIdAsync(string id);
         Task<Customer?> GetUserByPrincipalClaimsAsync(ClaimsPrincipal user);
         Task<IdentityResult> ConfirmEmailAsync(string uid, string token);
+        string GenerateRefreshToken();
     }
 }

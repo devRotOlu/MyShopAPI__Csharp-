@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyShopAPI.Data;
 
@@ -11,9 +12,11 @@ using MyShopAPI.Data;
 namespace MyShopAPI.Data.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20241204031145_renamedImages")]
+    partial class renamedImages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,13 +54,13 @@ namespace MyShopAPI.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "5688bf21-c2ad-4de1-86f6-d1f42ced10ab",
+                            Id = "8b434a86-c6e8-495e-a946-d2a400a9da13",
                             Name = "customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = "a4bebeb7-fcc7-49e2-bc6d-441f3ca662a7",
+                            Id = "2378c77b-09ea-44ae-a4ad-51a50f0e5c3f",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });
@@ -351,32 +354,6 @@ namespace MyShopAPI.Data.Migrations
                     b.ToTable("ProductReviews");
                 });
 
-            modelBuilder.Entity("MyShopAPI.Data.Entities.RefreshToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("ExpirationTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.ToTable("RefreshTokens");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -475,17 +452,6 @@ namespace MyShopAPI.Data.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Reviewer");
-                });
-
-            modelBuilder.Entity("MyShopAPI.Data.Entities.RefreshToken", b =>
-                {
-                    b.HasOne("MyShopAPI.Data.Entities.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("MyShopAPI.Data.Entities.Product", b =>

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MyShopAPI.Data.Entities
 {
-    public class Image
+    public class ProductImage
     {
         public int Id { get; set; }
         [Required]

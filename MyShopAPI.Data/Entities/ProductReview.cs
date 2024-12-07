@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MyShopAPI.Data.Entities
 {
-    [PrimaryKey(nameof(CustomerId), nameof(ProductId))]
+    [PrimaryKey(nameof(ReviewerId), nameof(ProductId))]
     public class ProductReview
     {
         [Required, ForeignKey("Customer")]
-        public string CustomerId { get; set; } = null!;
-        public Customer Customer { get; set; } = null!;
+        public string ReviewerId { get; set; } = null!;
+        public Customer Reviewer { get; set; } = null!;
         [Required, ForeignKey("Product")]
         public int ProductId { get; set; }
         public Product Product { get; set; } = null!;

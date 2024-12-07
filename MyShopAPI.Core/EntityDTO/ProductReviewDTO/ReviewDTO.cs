@@ -1,13 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using MyShopAPI.Core.EntityDTO.UserDTO;
 
 namespace MyShopAPI.Core.EntityDTO.ProductReviewDTO
 {
-    public class ReviewDTO
+    public class ReviewDTO : ProductReviewDTO
     {
-        [Required]
-        public string Review { get; set; } = null!;
-        [Required, Column(TypeName = "decimal(3,2)")]
-        public decimal Rating { get; set; }
+        public ReviewerDTO Reviewer { get; set; } = null!;
     }
 }

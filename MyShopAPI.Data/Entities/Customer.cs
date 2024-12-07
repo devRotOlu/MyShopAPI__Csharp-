@@ -11,5 +11,7 @@ namespace MyShopAPI.Data.Entities
         public string LastName { get; set; } = null!;
         public string? ShippingAddress { get; set; } 
         public string BillingAddress { get; set; } = null!;
+        public string? ProfilePictureUrI { get; set; } = null!;
+        public string? ProfilePicturePublicId { get; set; } = null!;
     }
 }

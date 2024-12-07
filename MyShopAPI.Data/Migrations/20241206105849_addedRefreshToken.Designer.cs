@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyShopAPI.Data;
 
@@ -11,9 +12,11 @@ using MyShopAPI.Data;
 namespace MyShopAPI.Data.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20241206105849_addedRefreshToken")]
+    partial class addedRefreshToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,13 +54,13 @@ namespace MyShopAPI.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "5688bf21-c2ad-4de1-86f6-d1f42ced10ab",
+                            Id = "00d3e7c8-93d7-4173-93b2-b54c33f67f74",
                             Name = "customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = "a4bebeb7-fcc7-49e2-bc6d-441f3ca662a7",
+                            Id = "fb06706e-faa2-4e68-a273-3639d3ed477a",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });
@@ -363,8 +366,8 @@ namespace MyShopAPI.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<DateTime>("ExpirationTime")
-                        .HasColumnType("datetime2");
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Token")
                         .IsRequired()
