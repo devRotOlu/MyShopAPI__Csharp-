@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MyShopAPI.Core.AuthManager;
 using MyShopAPI.Core.EntityDTO;
 using MyShopAPI.Core.EntityDTO.UserDTO;
@@ -7,6 +9,7 @@ using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
 using MyShopAPI.Services.Image;
+using System.Security.Claims;
 
 namespace MyShopAPI.Controllers
 {
@@ -44,17 +47,6 @@ namespace MyShopAPI.Controllers
 
             user.UserName = signUpDTO.Email;
 
-            if (signUpDTO.ProfilePicture != null)
-            {
-                var photo = await _photoService.AddPhotoAsync(signUpDTO.ProfilePicture);
-
-                if (photo.Error == null)
-                {
-                    user.ProfilePictureUrI = photo.SecureUrl.AbsoluteUri;
-                    user.ProfilePicturePublicId = photo.PublicId;
-                }
-            }
-
             var result = await _authManager.CreateAsync(user, signUpDTO.Password);
 
             if (!result.Succeeded)
@@ -69,7 +61,7 @@ namespace MyShopAPI.Controllers
 
             try
             {
-                await _authManager.GenerateEmailConfirmationTokenAsync(user, user.FirstName, _configuration["EmailConfirmation"]);
+                await _authManager.GenerateEmailConfirmationTokenAsync(user, signUpDTO.FirstName, _configuration["EmailConfirmation"]);
             }
             catch
             {
@@ -77,8 +69,17 @@ namespace MyShopAPI.Controllers
             }
             finally
             {
-                await _authManager.AddToRolesAsync(user, signUpDTO.Roles);
+                await _authManager.AddToRolesAsync(user, new List<string> { "customer" });
             }
+
+            user = await _unitOfWork.Customers.Get(customer=>customer.Email == signUpDTO.Email);
+
+            var customerDetails = _mapper.Map<CustomerDetails>(signUpDTO);
+            customerDetails.CustomerId = user.Id;
+
+            await _unitOfWork.CustomerDetails.Insert(customerDetails);
+
+            await _unitOfWork.Save();
 
             return Ok("Registration Successful!. Check your email for validation.");
         }
@@ -114,14 +115,14 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var user = await _authManager.GetUserByEmailAsync(email);
+            var user = await _unitOfWork.Customers.Get(customer => customer.Email == email, include: customer => customer.Include(customer => customer.Details));
 
             if (user == null)
             {
                 return BadRequest();
             }
 
-            await _authManager.GenerateEmailConfirmationTokenAsync(user, user.FirstName, _configuration["AcctValidationEmail"]);
+            await _authManager.GenerateEmailConfirmationTokenAsync(user, user.Details.FirstName, _configuration["AcctValidationEmail"]);
             return Ok("Check your email for validation.");
         }
 
@@ -144,9 +145,11 @@ namespace MyShopAPI.Controllers
                 return Unauthorized();
             }
 
-            var customer = await _unitOfWork.Customers.Get(customer => customer.Email == userDTO.Email);
+            var customer = await _unitOfWork.Customers.Get(customer => customer.Email == userDTO.Email,include:customer=>customer.Include(customer=>customer.Details));
 
-            var userInfo = _mapper.Map<CustomerDTO>(customer);
+            var userInfo = _mapper.Map<CustomerDTO>(customer.Details);
+            userInfo.Id = customer.Id;
+            userInfo.Email = customer.Email!;
 
             var refreshToken = _authManager.GenerateRefreshToken();
 
@@ -158,7 +161,7 @@ namespace MyShopAPI.Controllers
 
             var tokenObj = await _unitOfWork.RefreshTokens.Get(item => item.CustomerId == customer.Id);
 
-            if (tokenObj == null) 
+            if (tokenObj == null)
             {
                 await _unitOfWork.RefreshTokens.Insert(refreshTokenObj);
             }
@@ -170,7 +173,7 @@ namespace MyShopAPI.Controllers
 
             await _unitOfWork.Save();
 
-            return Accepted(new { accessToken = await _authManager.CreateToken(), user = userInfo, refreshToken});
+            return Accepted(new { accessToken = await _authManager.CreateToken(), user = userInfo, refreshToken });
         }
 
         [HttpPost("password-reset-email")]
@@ -184,14 +187,14 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var user = await _authManager.GetUserByEmailAsync(email);
+            var user = await _unitOfWork.Customers.Get(customer => customer.Email == email, include: customer => customer.Include(customer => customer.Details));
 
             if (user == null)
             {
                 return BadRequest();
             }
 
-            await _authManager.GenerateForgotPasswordTokenAsync(user, user.FirstName, _configuration["PasswordConfirmation"]);
+            await _authManager.GenerateForgotPasswordTokenAsync(user, user.Details.FirstName, _configuration["PasswordConfirmation"]);
 
             return NoContent();
         }
@@ -217,7 +220,9 @@ namespace MyShopAPI.Controllers
         }
 
         [HttpPost("token_refresh")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RefreshToken([FromBody] TokenDTO tokenDTO)
         {
             if (!ModelState.IsValid)
@@ -225,7 +230,7 @@ namespace MyShopAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _unitOfWork.RefreshTokens.Get(item=> item.CustomerId == tokenDTO.CustomerId && item.Token == tokenDTO.RefreshToken);
+            var result = await _unitOfWork.RefreshTokens.Get(item => item.CustomerId == tokenDTO.CustomerId && item.Token == tokenDTO.RefreshToken);
 
             if (result == null || result.ExpirationTime.CompareTo(DateTime.Now) < 0)
             {
@@ -237,11 +242,55 @@ namespace MyShopAPI.Controllers
             var refreshTokenObj = _mapper.Map<RefreshToken>(tokenDTO);
             refreshTokenObj.Id = result.Id;
             refreshTokenObj.Token = refreshToken;
-         
+
             _unitOfWork.RefreshTokens.Update(refreshTokenObj);
             await _unitOfWork.Save();
 
-            return Ok(new { accessToken = await _authManager.CreateToken(), refreshToken});
+            return Ok(new { accessToken = await _authManager.CreateToken(), refreshToken });
+        }
+
+        [Authorize]
+        [HttpPatch("modify-details")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ModifyDetails([FromForm] DetailsDTO detailsDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var customer = _mapper.Map<CustomerDetails>(detailsDTO);
+
+            if (detailsDTO.ProfilePicture != null)
+            {
+                var photo = await _photoService.AddPhotoAsync(detailsDTO.ProfilePicture);
+
+                if (photo.Error == null)
+                {
+                    customer.ProfilePictureUrI = photo.SecureUrl.AbsoluteUri;
+                    customer.ProfilePicturePublicId = photo.PublicId;
+                }
+            }
+
+            var userName = User.FindFirstValue(ClaimTypes.Name);
+
+            var result = await _unitOfWork.Customers.Get(customer => customer.Email == userName, include: customer => customer.Include(customer => customer.Details));
+
+            customer.Id = result.Details.Id;
+            customer.CustomerId = result.Details.CustomerId;
+
+            _unitOfWork.CustomerDetails.Update(customer);
+            await _unitOfWork.Save();
+
+
+            string uri = $"{Request.Scheme}://{Request.Host}{Request.PathBase}{Request.Path}{Request.QueryString}";
+
+            var customerDTO = _mapper.Map<CustomerDTO>(customer);
+            customerDTO.Email = result.Email!;
+
+            return Created(uri,new {user=customerDTO});
         }
     }
 }

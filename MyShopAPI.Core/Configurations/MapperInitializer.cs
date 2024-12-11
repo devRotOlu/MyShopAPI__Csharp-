@@ -14,8 +14,12 @@ namespace MyShopAPI.Core.Configurations
         {
             CreateMap<Customer, SignUpDTO>().ReverseMap();
             CreateMap<Customer, LoginDTO>().ReverseMap();
-            CreateMap<Customer, CustomerDTO>().ReverseMap();
-            CreateMap<Customer, ReviewerDTO>().ReverseMap();
+            CreateMap<CustomerDetails, CustomerDTO>().ReverseMap();
+            CreateMap<CustomerDetails, ReviewerDTO>().ReverseMap();
+            CreateMap<CustomerDetails, SignUpDTO>()
+                .ForMember(dest => dest.PhoneNumber, opt => opt.Ignore());
+            CreateMap<CustomerDetails, DetailsDTO>().ReverseMap();
+            CreateMap<CustomerDetails, CustomerDTO>().ReverseMap();
             CreateMap<Cart, GetCartDTO>()
                       .ForMember(getCartDTO=>getCartDTO.CartQuantity,opt=>opt.MapFrom(cart=>cart.Quantity));
             CreateMap<Cart, AddCartDTO>().ReverseMap();

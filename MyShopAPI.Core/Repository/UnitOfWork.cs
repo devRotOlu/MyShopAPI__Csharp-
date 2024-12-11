@@ -13,6 +13,7 @@ namespace MyShopAPI.Core.Repository
         public IGenericRepository<ProductImage> ProductImages { get; set; }
         public IGenericRepository<ProductReview> ProductReviews { get; set; }
         public IGenericRepository<RefreshToken> RefreshTokens { get; set; }
+        public IGenericRepository<CustomerDetails> CustomerDetails { get; set; }
 
         public UnitOfWork(DatabaseContext databaseContext)
         {
@@ -22,6 +23,7 @@ namespace MyShopAPI.Core.Repository
             ProductImages = new GenericRepository<ProductImage>(databaseContext);
             ProductReviews = new GenericRepository<ProductReview>(databaseContext);
             RefreshTokens = new GenericRepository<RefreshToken>(databaseContext);
+            CustomerDetails = new GenericRepository<CustomerDetails>(databaseContext);
             _databaseContext = databaseContext;
         }
 

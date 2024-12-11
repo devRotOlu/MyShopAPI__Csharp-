@@ -127,6 +127,16 @@ builder.Services.AddAutoMapper(typeof(MapperInitializer));
 /// new
 builder.Services.AddAuthorization();
 
+builder.Services.AddCors(corsOptions =>
+{
+    corsOptions.AddPolicy("CorsPolicy", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000")
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 //builder.Services.AddIdentityApiEndpoints<Customer>();
 
 var _identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services); _identityBuilder.AddEntityFrameworkStores<DatabaseContext>().AddDefaultTokenProviders();
@@ -138,7 +148,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

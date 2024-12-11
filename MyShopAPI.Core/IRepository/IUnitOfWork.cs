@@ -10,6 +10,7 @@ namespace MyShopAPI.Core.IRepository
         IGenericRepository<ProductImage> ProductImages { get; set; }
         IGenericRepository<ProductReview> ProductReviews { get; set; }
         IGenericRepository<RefreshToken> RefreshTokens { get; set; }
+        IGenericRepository<CustomerDetails> CustomerDetails { get; set; }
         Task Save();
     }
 }
