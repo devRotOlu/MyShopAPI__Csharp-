@@ -8,22 +8,22 @@ namespace MyShopAPI.Core.Repository
     {
         private readonly DatabaseContext _databaseContext;
         public IGenericRepository<Customer> Customers { get; set; }
-        public IGenericRepository<Cart> Carts { get; set; }
+        public IGenericRepository<CartAndWishlist> CartsAndWishlists { get; set; }
         public IGenericRepository<Product> Products { get; set; }
         public IGenericRepository<ProductImage> ProductImages { get; set; }
         public IGenericRepository<ProductReview> ProductReviews { get; set; }
-        public IGenericRepository<RefreshToken> RefreshTokens { get; set; }
         public IGenericRepository<CustomerDetails> CustomerDetails { get; set; }
+        public IGenericRepository<RefreshToken> RefreshTokens { get; set; }
 
         public UnitOfWork(DatabaseContext databaseContext)
         {
             Customers = new GenericRepository<Customer>(databaseContext);
-            Carts = new GenericRepository<Cart>(databaseContext);
+            CartsAndWishlists = new GenericRepository<CartAndWishlist>(databaseContext);
             Products = new GenericRepository<Product>(databaseContext);
             ProductImages = new GenericRepository<ProductImage>(databaseContext);
             ProductReviews = new GenericRepository<ProductReview>(databaseContext);
-            RefreshTokens = new GenericRepository<RefreshToken>(databaseContext);
             CustomerDetails = new GenericRepository<CustomerDetails>(databaseContext);
+            RefreshTokens = new GenericRepository<RefreshToken>(databaseContext);
             _databaseContext = databaseContext;
         }
 

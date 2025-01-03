@@ -51,13 +51,13 @@ namespace MyShopAPI.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "e070ff6f-524a-4479-bfb0-36291d73df72",
+                            Id = "1df5a96b-2a6f-445e-880e-1a507dc69c32",
                             Name = "customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = "a73a9459-0531-4c9b-bafe-b5948140bbee",
+                            Id = "2006c564-cdf7-4b6b-9e36-edc308529e81",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });
@@ -169,9 +169,16 @@ namespace MyShopAPI.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("MyShopAPI.Data.Entities.Cart", b =>
+            modelBuilder.Entity("MyShopAPI.Data.Entities.CartAndWishlist", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<string>("CustomerId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("ProductId")
@@ -180,11 +187,13 @@ namespace MyShopAPI.Data.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("CustomerId", "ProductId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Carts");
+                    b.ToTable("CartsAndWishlists");
                 });
 
             modelBuilder.Entity("MyShopAPI.Data.Entities.Customer", b =>
@@ -451,7 +460,7 @@ namespace MyShopAPI.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MyShopAPI.Data.Entities.Cart", b =>
+            modelBuilder.Entity("MyShopAPI.Data.Entities.CartAndWishlist", b =>
                 {
                     b.HasOne("MyShopAPI.Data.Entities.Customer", "Customer")
                         .WithMany()

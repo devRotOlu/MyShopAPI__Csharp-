@@ -60,6 +60,7 @@ namespace MyShopAPI.Controllers
             return Created();
         }
 
+        [AllowAnonymous]
         [HttpGet("list-products")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

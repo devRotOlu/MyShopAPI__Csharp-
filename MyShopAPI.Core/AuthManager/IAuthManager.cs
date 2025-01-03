@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using MyShopAPI.Core.EntityDTO.UserDTO;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
@@ -17,9 +19,11 @@ namespace MyShopAPI.Core.AuthManager
         Task<IdentityResult> ResetPasswordAsync(ResetPassword model);
         Task<IdentityResult> CreateAsync(Customer appUser, string password);
         Task<IdentityResult> AddToRolesAsync(Customer appUser, IEnumerable<string> roles);
-        Task<Customer> GetUserByIdAsync(string id);
         Task<Customer?> GetUserByPrincipalClaimsAsync(ClaimsPrincipal user);
         Task<IdentityResult> ConfirmEmailAsync(string uid, string token);
+        Task<Customer?> GetUserByIdAsync(string id);
         string GenerateRefreshToken();
+        void SetTokenInCookies(Tokens tokens,HttpContext context);
+        Task<TokenValidationResult> ValidateToken(string accessToken);
     }
 }

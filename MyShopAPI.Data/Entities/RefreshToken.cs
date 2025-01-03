@@ -12,6 +12,6 @@ namespace MyShopAPI.Data.Entities
         [Required]
         public string Token { get; set; } = null!;
         [Required]
-        public DateTime ExpirationTime { get; set; } = DateTime.Now.AddHours(1);
+        public DateTime ExpirationTime { get; set; } 
     }
 }

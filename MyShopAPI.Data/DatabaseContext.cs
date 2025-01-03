@@ -11,12 +11,12 @@ namespace MyShopAPI.Data
         public DatabaseContext(DbContextOptions options) :
             base(options)
         { }
-        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartAndWishlist> CartsAndWishlists { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<ProductReview> ProductReviews { get; set; }
-        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<CustomerDetails> CustomersDetails { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

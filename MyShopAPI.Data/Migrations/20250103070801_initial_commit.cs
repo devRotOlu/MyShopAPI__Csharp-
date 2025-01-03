@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MyShopAPI.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class initialMigration : Migration
+    public partial class initial_commit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,10 +32,6 @@ namespace MyShopAPI.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ShippingAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    BillingAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -65,7 +61,8 @@ namespace MyShopAPI.Data.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(15,4)", nullable: false),
-                    Quantity = table.Column<long>(type: "bigint", nullable: false)
+                    Quantity = table.Column<long>(type: "bigint", nullable: false),
+                    AverageRating = table.Column<decimal>(type: "decimal(3,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -179,24 +176,73 @@ namespace MyShopAPI.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Carts",
+                name: "CustomersDetails",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ShippingAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BillingAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProfilePictureUrI = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProfilePicturePublicId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CustomersDetails", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CustomersDetails_AspNetUsers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExpirationTime = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_AspNetUsers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CartsAndWishlists",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Carts", x => new { x.CustomerId, x.ProductId });
+                    table.PrimaryKey("PK_CartsAndWishlists", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Carts_AspNetUsers_CustomerId",
+                        name: "FK_CartsAndWishlists_AspNetUsers_CustomerId",
                         column: x => x.CustomerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Carts_Products_ProductId",
+                        name: "FK_CartsAndWishlists_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
@@ -204,7 +250,7 @@ namespace MyShopAPI.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Images",
+                name: "ProductImages",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -215,9 +261,9 @@ namespace MyShopAPI.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Images", x => x.Id);
+                    table.PrimaryKey("PK_ProductImages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Images_Products_ProductId",
+                        name: "FK_ProductImages_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
@@ -228,17 +274,17 @@ namespace MyShopAPI.Data.Migrations
                 name: "ProductReviews",
                 columns: table => new
                 {
-                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ReviewerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Review = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Rating = table.Column<decimal>(type: "decimal(3,2)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductReviews", x => new { x.CustomerId, x.ProductId });
+                    table.PrimaryKey("PK_ProductReviews", x => new { x.ReviewerId, x.ProductId });
                     table.ForeignKey(
-                        name: "FK_ProductReviews_AspNetUsers_CustomerId",
-                        column: x => x.CustomerId,
+                        name: "FK_ProductReviews_AspNetUsers_ReviewerId",
+                        column: x => x.ReviewerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -255,8 +301,8 @@ namespace MyShopAPI.Data.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "ab7e8402-4085-411c-ae61-37de53325964", null, "Administrator", "ADMINISTRATOR" },
-                    { "daa1d784-17ba-431f-9aa3-3e14fd77cee8", null, "customer", "CUSTOMER" }
+                    { "1df5a96b-2a6f-445e-880e-1a507dc69c32", null, "customer", "CUSTOMER" },
+                    { "2006c564-cdf7-4b6b-9e36-edc308529e81", null, "Administrator", "ADMINISTRATOR" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -299,19 +345,35 @@ namespace MyShopAPI.Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Carts_ProductId",
-                table: "Carts",
+                name: "IX_CartsAndWishlists_CustomerId",
+                table: "CartsAndWishlists",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartsAndWishlists_ProductId",
+                table: "CartsAndWishlists",
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Images_ProductId",
-                table: "Images",
+                name: "IX_CustomersDetails_CustomerId",
+                table: "CustomersDetails",
+                column: "CustomerId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductImages_ProductId",
+                table: "ProductImages",
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductReviews_ProductId",
                 table: "ProductReviews",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_CustomerId",
+                table: "RefreshTokens",
+                column: "CustomerId");
         }
 
         /// <inheritdoc />
@@ -333,22 +395,28 @@ namespace MyShopAPI.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Carts");
+                name: "CartsAndWishlists");
 
             migrationBuilder.DropTable(
-                name: "Images");
+                name: "CustomersDetails");
+
+            migrationBuilder.DropTable(
+                name: "ProductImages");
 
             migrationBuilder.DropTable(
                 name: "ProductReviews");
 
             migrationBuilder.DropTable(
+                name: "RefreshTokens");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Products");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "AspNetUsers");
         }
     }
 }

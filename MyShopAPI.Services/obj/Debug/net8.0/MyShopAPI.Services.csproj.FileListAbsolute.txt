@@ -23,3 +23,6 @@ C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Services\obj\Debug
 C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Services\obj\Debug\net8.0\refint\MyShopAPI.Services.dll
 C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Services\obj\Debug\net8.0\MyShopAPI.Services.pdb
 C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Services\obj\Debug\net8.0\ref\MyShopAPI.Services.dll
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Services\bin\Debug\net8.0\MyShopAPI.Data.dll
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Services\bin\Debug\net8.0\MyShopAPI.Data.pdb
+C:\Users\HP\Desktop\CSharpProject\MyShopAPISolution\MyShopAPI.Services\obj\Debug\net8.0\MyShopAP.BD82FAD7.Up2Date

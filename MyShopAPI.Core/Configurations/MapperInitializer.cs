@@ -4,6 +4,7 @@ using MyShopAPI.Core.EntityDTO.CartDTO;
 using MyShopAPI.Core.EntityDTO.ProductReviewDTO;
 using MyShopAPI.Core.EntityDTO.ProoductDTO;
 using MyShopAPI.Core.EntityDTO.UserDTO;
+using MyShopAPI.Core.EntityDTO.WishlistDTO;
 using MyShopAPI.Data.Entities;
 
 namespace MyShopAPI.Core.Configurations
@@ -12,23 +13,23 @@ namespace MyShopAPI.Core.Configurations
     {
         public MapperInitializer()
         {
-            CreateMap<Customer, SignUpDTO>().ReverseMap();
-            CreateMap<Customer, LoginDTO>().ReverseMap();
+            CreateMap<SignUpDTO,Customer>()
+                .ForMember(dest => dest.PhoneNumber, opt => opt.Ignore()); ;
             CreateMap<CustomerDetails, CustomerDTO>().ReverseMap();
             CreateMap<CustomerDetails, ReviewerDTO>().ReverseMap();
-            CreateMap<CustomerDetails, SignUpDTO>()
-                .ForMember(dest => dest.PhoneNumber, opt => opt.Ignore());
+            CreateMap<SignUpDTO, CustomerDetails>();
             CreateMap<CustomerDetails, DetailsDTO>().ReverseMap();
             CreateMap<CustomerDetails, CustomerDTO>().ReverseMap();
-            CreateMap<Cart, GetCartDTO>()
+            CreateMap<CartAndWishlist, GetCartDTO>()
                       .ForMember(getCartDTO=>getCartDTO.CartQuantity,opt=>opt.MapFrom(cart=>cart.Quantity));
-            CreateMap<Cart, AddCartDTO>().ReverseMap();
+            CreateMap<CartAndWishlist, AddWishlistDTO>().ReverseMap();
+            CreateMap<CartAndWishlist, AddCartDTO>().ReverseMap();
+            CreateMap<CartAndWishlist, GetWishlistDTO>();
             CreateMap<Product, AddProductDTO>().ReverseMap();
             CreateMap<Product, GetProductDTO>().ReverseMap();
             CreateMap<ProductImage, ImageDTO>().ReverseMap();
             CreateMap<ProductReview,AddReviewDTO>().ReverseMap();
             CreateMap<ProductReview,ReviewDTO>().ReverseMap();
-            CreateMap<TokenDTO,RefreshToken>();
         }
     }
 }

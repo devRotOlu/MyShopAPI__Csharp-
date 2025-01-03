@@ -10,6 +10,11 @@
     <PackageReference Include="CloudinaryDotNet" Version="1.26.2" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
+	<PackageReference Include="PayPalServerSDK" Version="0.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyShopAPI.Data\MyShopAPI.Data.csproj" />
   </ItemGroup>
 
 </Project>

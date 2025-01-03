@@ -12,8 +12,8 @@ using MyShopAPI.Data;
 namespace MyShopAPI.Data.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20241202033233_initialMigration")]
-    partial class initialMigration
+    [Migration("20250103070801_initial_commit")]
+    partial class initial_commit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -54,13 +54,13 @@ namespace MyShopAPI.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "daa1d784-17ba-431f-9aa3-3e14fd77cee8",
+                            Id = "1df5a96b-2a6f-445e-880e-1a507dc69c32",
                             Name = "customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = "ab7e8402-4085-411c-ae61-37de53325964",
+                            Id = "2006c564-cdf7-4b6b-9e36-edc308529e81",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });
@@ -172,9 +172,16 @@ namespace MyShopAPI.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("MyShopAPI.Data.Entities.Cart", b =>
+            modelBuilder.Entity("MyShopAPI.Data.Entities.CartAndWishlist", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<string>("CustomerId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("ProductId")
@@ -183,11 +190,13 @@ namespace MyShopAPI.Data.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("CustomerId", "ProductId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Carts");
+                    b.ToTable("CartsAndWishlists");
                 });
 
             modelBuilder.Entity("MyShopAPI.Data.Entities.Customer", b =>
@@ -197,10 +206,6 @@ namespace MyShopAPI.Data.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
-
-                    b.Property<string>("BillingAddress")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -212,14 +217,6 @@ namespace MyShopAPI.Data.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -247,9 +244,6 @@ namespace MyShopAPI.Data.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ShippingAddress")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -270,7 +264,81 @@ namespace MyShopAPI.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("MyShopAPI.Data.Entities.Image", b =>
+            modelBuilder.Entity("MyShopAPI.Data.Entities.CustomerDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BillingAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProfilePicturePublicId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProfilePictureUrI")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShippingAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId")
+                        .IsUnique();
+
+                    b.ToTable("CustomersDetails");
+                });
+
+            modelBuilder.Entity("MyShopAPI.Data.Entities.Product", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AverageRating")
+                        .HasColumnType("decimal(3,2)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("Quantity")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(15,4)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("MyShopAPI.Data.Entities.ProductImage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -293,39 +361,12 @@ namespace MyShopAPI.Data.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Images");
-                });
-
-            modelBuilder.Entity("MyShopAPI.Data.Entities.Product", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("Quantity")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(15,4)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Products");
+                    b.ToTable("ProductImages");
                 });
 
             modelBuilder.Entity("MyShopAPI.Data.Entities.ProductReview", b =>
                 {
-                    b.Property<string>("CustomerId")
+                    b.Property<string>("ReviewerId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("ProductId")
@@ -338,11 +379,37 @@ namespace MyShopAPI.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("CustomerId", "ProductId");
+                    b.HasKey("ReviewerId", "ProductId");
 
                     b.HasIndex("ProductId");
 
                     b.ToTable("ProductReviews");
+                });
+
+            modelBuilder.Entity("MyShopAPI.Data.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ExpirationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -396,7 +463,7 @@ namespace MyShopAPI.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MyShopAPI.Data.Entities.Cart", b =>
+            modelBuilder.Entity("MyShopAPI.Data.Entities.CartAndWishlist", b =>
                 {
                     b.HasOne("MyShopAPI.Data.Entities.Customer", "Customer")
                         .WithMany()
@@ -415,7 +482,18 @@ namespace MyShopAPI.Data.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("MyShopAPI.Data.Entities.Image", b =>
+            modelBuilder.Entity("MyShopAPI.Data.Entities.CustomerDetails", b =>
+                {
+                    b.HasOne("MyShopAPI.Data.Entities.Customer", "Customer")
+                        .WithOne("Details")
+                        .HasForeignKey("MyShopAPI.Data.Entities.CustomerDetails", "CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("MyShopAPI.Data.Entities.ProductImage", b =>
                 {
                     b.HasOne("MyShopAPI.Data.Entities.Product", "Product")
                         .WithMany("Images")
@@ -428,21 +506,38 @@ namespace MyShopAPI.Data.Migrations
 
             modelBuilder.Entity("MyShopAPI.Data.Entities.ProductReview", b =>
                 {
-                    b.HasOne("MyShopAPI.Data.Entities.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("MyShopAPI.Data.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Customer");
+                    b.HasOne("MyShopAPI.Data.Entities.Customer", "Reviewer")
+                        .WithMany()
+                        .HasForeignKey("ReviewerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Product");
+
+                    b.Navigation("Reviewer");
+                });
+
+            modelBuilder.Entity("MyShopAPI.Data.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("MyShopAPI.Data.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("MyShopAPI.Data.Entities.Customer", b =>
+                {
+                    b.Navigation("Details")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MyShopAPI.Data.Entities.Product", b =>

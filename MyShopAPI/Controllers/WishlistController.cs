@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyShopAPI.Core.EntityDTO.CartDTO;
+using MyShopAPI.Core.EntityDTO.WishlistDTO;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
 
@@ -11,12 +11,12 @@ namespace MyShopAPI.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class CartController : ControllerBase
+    public class WishlistController : ControllerBase
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CartController(IMapper mapper, IUnitOfWork unitOfWork)
+        public WishlistController(IMapper mapper, IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -25,7 +25,7 @@ namespace MyShopAPI.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> AddToCart([FromBody] AddCartDTO item)
+        public async Task<IActionResult> AddToWishlist([FromBody] AddWishlistDTO item)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -36,7 +36,6 @@ namespace MyShopAPI.Controllers
             var cartItem = _mapper.Map<CartAndWishlist>(item);
 
             await _unitOfWork.CartsAndWishlists.Insert(cartItem);
-
             await _unitOfWork.Save();
 
             return Created();
@@ -45,7 +44,7 @@ namespace MyShopAPI.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetCartItems([FromQuery] string email)
+        public async Task<IActionResult> GetWishListItems([FromQuery] string email)
         {
             var customer = await _unitOfWork.Customers.Get(customer => customer.Email == email);
 
@@ -54,40 +53,26 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var results = await _unitOfWork.CartsAndWishlists.GetAll(item => item.CustomerId == customer.Id && item.Quantity != 0, include: item => item.Include(item => item.Product)
-                    .ThenInclude(product => product.Images));
+            var results = await _unitOfWork.CartsAndWishlists.GetAll(item => item.CustomerId == customer.Id && item.Quantity == 0, include: item => item.Include(item => item.Product)
+                                            .ThenInclude(product => product.Images));
 
-            var cartItems = _mapper.Map<IEnumerable<GetCartDTO>>(results);
+            var cartItems = _mapper.Map<IEnumerable<GetWishlistDTO>>(results);
 
             return Ok(cartItems);
-        }
-
-        [HttpPut]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateCartItem([FromBody] AddCartDTO cartDTO)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var cartItem = _mapper.Map<CartAndWishlist>(cartDTO);
-
-            _unitOfWork.CartsAndWishlists.Update(cartItem);
-
-            await _unitOfWork.Save();
-
-            return Ok(cartItem);
         }
 
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> DeleteCartItem(AddCartDTO cartDTO)
+        public async Task<IActionResult> DeleteWishListItem(AddWishlistDTO wishlistDTO)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cartItem = _mapper.Map<CartAndWishlist>(cartDTO);
+            var item = await _unitOfWork.CartsAndWishlists.Get(item=>item.CustomerId == wishlistDTO.CustomerId && item.ProductId == wishlistDTO.ProductId && item.Quantity == 0);
 
-            _unitOfWork.CartsAndWishlists.Delete(cartItem);
+            if (item == null) return BadRequest();
+
+            _unitOfWork.CartsAndWishlists.Delete(item);
 
             await _unitOfWork.Save();
 

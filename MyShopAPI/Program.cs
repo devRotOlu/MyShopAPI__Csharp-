@@ -13,6 +13,7 @@ using MyShopAPI.Data.Entities;
 using MyShopAPI.Services.Email;
 using MyShopAPI.Services.Image;
 using MyShopAPI.Services.Models;
+using MyShopAPI.Services.PayPal;
 using Newtonsoft.Json.Converters;
 using System.Text;
 
@@ -53,6 +54,10 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
+  .AddCookie(options =>
+    {
+        options.Cookie.Name = "accessToken";
+    })
    .AddJwtBearer(options =>
    {
        var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -62,6 +67,7 @@ builder.Services.AddAuthentication(options =>
        options.RequireHttpsMetadata = true;
        options.SaveToken = true;
 
+       
        options.TokenValidationParameters = new TokenValidationParameters
        {
            ValidateIssuer = true,
@@ -73,7 +79,22 @@ builder.Services.AddAuthentication(options =>
            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!)),
            RequireExpirationTime = true,
        };
+
+       // to implement httponly cookie JSON Web Token
+       options.Events = new JwtBearerEvents
+       {
+           OnMessageReceived = ctx =>
+           {
+               if (ctx.Request.Cookies.ContainsKey("accessToken"))
+               {
+                   ctx.Token = ctx.Request.Cookies["accessToken"];
+               }
+               return Task.CompletedTask;
+           }
+       };
    });
+
+ 
 
 builder.Services.AddSwaggerGen(
     c =>
@@ -114,15 +135,27 @@ builder.Services.AddSwaggerGen(
 );
 
 
-builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailManager, EmailManager>();
 builder.Services.AddScoped<IAuthManager, AuthManager>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.Configure<SMTPConfig>(builder.Configuration.GetSection("SMTPConfig"));
+builder.Services.AddScoped<IPayPalService, PayPalService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
 builder.Services.AddAutoMapper(typeof(MapperInitializer));
+
+builder.Services.AddSingleton(x =>
+{
+    return new PayPalClient
+    {
+        BaseUrl = builder.Configuration["PayPal:BaseURI"]!,
+        ClientId = builder.Configuration["PayPal:ClientID"]!,
+        ClientSecret = builder.Configuration["PayPal:SecretKey"]!,
+        Mode = builder.Configuration["PayPal:Mode"]!,
+    };
+});
 
 /// new
 builder.Services.AddAuthorization();
@@ -133,7 +166,8 @@ builder.Services.AddCors(corsOptions =>
     {
         builder.WithOrigins("http://localhost:3000")
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 

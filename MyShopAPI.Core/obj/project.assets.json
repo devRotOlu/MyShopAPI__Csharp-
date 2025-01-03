@@ -2,6 +2,23 @@
   "version": 3,
   "targets": {
     "net8.0": {
+      "APIMatic.Core/0.4.3": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.CSharp": "4.7.0",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.1",
+          "Microsoft.Json.Pointer": "2.3.0",
+          "Newtonsoft.Json": "13.0.2",
+          "Polly": "7.2.3",
+          "System.Collections.Immutable": "7.0.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/APIMatic.Core.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/APIMatic.Core.dll": {}
+        }
+      },
       "AutoMapper/13.0.1": {
         "type": "package",
         "dependencies": {
@@ -185,7 +202,7 @@
           }
         }
       },
-      "Microsoft.CSharp/4.5.0": {
+      "Microsoft.CSharp/4.7.0": {
         "type": "package",
         "compile": {
           "ref/netcoreapp2.0/_._": {}
@@ -675,6 +692,19 @@
           }
         }
       },
+      "Microsoft.Json.Pointer/2.3.0": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "9.0.1",
+          "System.Collections.Immutable": "1.5.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/Microsoft.Json.Pointer.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Json.Pointer.dll": {}
+        }
+      },
       "Microsoft.NETCore.Platforms/1.1.1": {
         "type": "package",
         "compile": {
@@ -738,6 +768,36 @@
         "runtime": {
           "lib/net6.0/Newtonsoft.Json.dll": {
             "related": ".xml"
+          }
+        }
+      },
+      "PayPalServerSDK/0.6.1": {
+        "type": "package",
+        "dependencies": {
+          "APIMatic.Core": "0.4.3",
+          "Microsoft.CSharp": "4.7.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/PayPalServerSDK.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/PayPalServerSDK.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Polly/7.2.3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Polly.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Polly.dll": {
+            "related": ".pdb;.xml"
           }
         }
       },
@@ -950,6 +1010,22 @@
         },
         "runtime": {
           "lib/netstandard1.3/System.Collections.Concurrent.dll": {}
+        }
+      },
+      "System.Collections.Immutable/7.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net7.0/System.Collections.Immutable.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/System.Collections.Immutable.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/_._": {}
         }
       },
       "System.Configuration.ConfigurationManager/6.0.1": {
@@ -1959,7 +2035,9 @@
         "dependencies": {
           "CloudinaryDotNet": "1.26.2",
           "Microsoft.AspNetCore.Http.Features": "5.0.17",
-          "Microsoft.Extensions.Options": "9.0.0"
+          "Microsoft.Extensions.Options": "9.0.0",
+          "MyShopAPI.Data": "1.0.0",
+          "PayPalServerSDK": "0.6.1"
         },
         "compile": {
           "bin/placeholder/MyShopAPI.Services.dll": {}
@@ -1971,6 +2049,21 @@
     }
   },
   "libraries": {
+    "APIMatic.Core/0.4.3": {
+      "sha512": "n941lB8iwYREw8FwaiBBSD37hizstAbK/oxcrgXLs0PIZiAykMY8R0Y1SvcH12wPL9udIFI8I0crjIeoV7VffQ==",
+      "type": "package",
+      "path": "apimatic.core/0.4.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "apimatic.core.0.4.3.nupkg.sha512",
+        "apimatic.core.nuspec",
+        "icon.png",
+        "lib/netstandard2.0/APIMatic.Core.dll"
+      ]
+    },
     "AutoMapper/13.0.1": {
       "sha512": "/Fx1SbJ16qS7dU4i604Sle+U9VLX+WSNVJggk6MupKVkYvvBm4XqYaeFuf67diHefHKHs50uQIS2YEDFhPCakQ==",
       "type": "package",
@@ -2166,10 +2259,10 @@
         "version.txt"
       ]
     },
-    "Microsoft.CSharp/4.5.0": {
-      "sha512": "kaj6Wb4qoMuH3HySFJhxwQfe8R/sJsNJnANrvv8WdFPMoNbKY5htfNscv+LHCu5ipz+49m2e+WQXpLXr9XYemQ==",
+    "Microsoft.CSharp/4.7.0": {
+      "sha512": "pTj+D3uJWyN3My70i2Hqo+OXixq3Os2D1nJ2x92FFo6sk8fYS1m1WLNTs0Dc1uPaViH0YvEEwvzddQ7y4rhXmA==",
       "type": "package",
-      "path": "microsoft.csharp/4.5.0",
+      "path": "microsoft.csharp/4.7.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -2182,6 +2275,7 @@
         "lib/netcoreapp2.0/_._",
         "lib/netstandard1.3/Microsoft.CSharp.dll",
         "lib/netstandard2.0/Microsoft.CSharp.dll",
+        "lib/netstandard2.0/Microsoft.CSharp.xml",
         "lib/portable-net45+win8+wp8+wpa81/_._",
         "lib/uap10.0.16299/_._",
         "lib/win8/_._",
@@ -2191,7 +2285,7 @@
         "lib/xamarinmac20/_._",
         "lib/xamarintvos10/_._",
         "lib/xamarinwatchos10/_._",
-        "microsoft.csharp.4.5.0.nupkg.sha512",
+        "microsoft.csharp.4.7.0.nupkg.sha512",
         "microsoft.csharp.nuspec",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
@@ -2917,6 +3011,19 @@
         "microsoft.identitymodel.tokens.nuspec"
       ]
     },
+    "Microsoft.Json.Pointer/2.3.0": {
+      "sha512": "dP5d8Mo1vcqzWqY8StKoFNJNOdEDLkqg+GGQMAZgM9fNDQqekey9G0edIjEDGboY7yRjAJHGiuhc8/w45O6Ncw==",
+      "type": "package",
+      "path": "microsoft.json.pointer/2.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net461/Microsoft.Json.Pointer.dll",
+        "lib/netstandard2.0/Microsoft.Json.Pointer.dll",
+        "microsoft.json.pointer.2.3.0.nupkg.sha512",
+        "microsoft.json.pointer.nuspec"
+      ]
+    },
     "Microsoft.NETCore.Platforms/1.1.1": {
       "sha512": "TMBuzAHpTenGbGgk0SMTwyEkyijY/Eae4ZGsFNYJvAr/LDn1ku3Etp3FPxChmDp5HHF3kzJuoaa08N0xjqAJfQ==",
       "type": "package",
@@ -3022,6 +3129,45 @@
         "newtonsoft.json.13.0.3.nupkg.sha512",
         "newtonsoft.json.nuspec",
         "packageIcon.png"
+      ]
+    },
+    "PayPalServerSDK/0.6.1": {
+      "sha512": "0lh2GNN1t0wDBKaKyPJkj4iH5xaOSEluxQsh4pt7aXb0Aa0n7EuRBP2Ium1/ZU52hs0QliQCVRrQemzgau5W1Q==",
+      "type": "package",
+      "path": "paypalserversdk/0.6.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "lib/netstandard2.0/PayPalServerSDK.dll",
+        "lib/netstandard2.0/PayPalServerSDK.xml",
+        "paypalserversdk.0.6.1.nupkg.sha512",
+        "paypalserversdk.nuspec"
+      ]
+    },
+    "Polly/7.2.3": {
+      "sha512": "DeCY0OFbNdNxsjntr1gTXHJ5pKUwYzp04Er2LLeN3g6pWhffsGuKVfMBLe1lw7x76HrPkLxKEFxBlpRxS2nDEQ==",
+      "type": "package",
+      "path": "polly/7.2.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Polly.png",
+        "lib/net461/Polly.dll",
+        "lib/net461/Polly.pdb",
+        "lib/net461/Polly.xml",
+        "lib/net472/Polly.dll",
+        "lib/net472/Polly.pdb",
+        "lib/net472/Polly.xml",
+        "lib/netstandard1.1/Polly.dll",
+        "lib/netstandard1.1/Polly.pdb",
+        "lib/netstandard1.1/Polly.xml",
+        "lib/netstandard2.0/Polly.dll",
+        "lib/netstandard2.0/Polly.pdb",
+        "lib/netstandard2.0/Polly.xml",
+        "polly.7.2.3.nupkg.sha512",
+        "polly.nuspec"
       ]
     },
     "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {
@@ -3386,6 +3532,34 @@
         "ref/xamarinwatchos10/_._",
         "system.collections.concurrent.4.3.0.nupkg.sha512",
         "system.collections.concurrent.nuspec"
+      ]
+    },
+    "System.Collections.Immutable/7.0.0": {
+      "sha512": "dQPcs0U1IKnBdRDBkrCTi1FoajSTBzLcVTpjO4MBCMC7f4pDOIPzgBoX8JjG7X6uZRJ8EBxsi8+DR1JuwjnzOQ==",
+      "type": "package",
+      "path": "system.collections.immutable/7.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "README.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/System.Collections.Immutable.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
+        "buildTransitive/netcoreapp2.0/System.Collections.Immutable.targets",
+        "lib/net462/System.Collections.Immutable.dll",
+        "lib/net462/System.Collections.Immutable.xml",
+        "lib/net6.0/System.Collections.Immutable.dll",
+        "lib/net6.0/System.Collections.Immutable.xml",
+        "lib/net7.0/System.Collections.Immutable.dll",
+        "lib/net7.0/System.Collections.Immutable.xml",
+        "lib/netstandard2.0/System.Collections.Immutable.dll",
+        "lib/netstandard2.0/System.Collections.Immutable.xml",
+        "system.collections.immutable.7.0.0.nupkg.sha512",
+        "system.collections.immutable.nuspec",
+        "useSharedDesignerContext.txt"
       ]
     },
     "System.Configuration.ConfigurationManager/6.0.1": {
