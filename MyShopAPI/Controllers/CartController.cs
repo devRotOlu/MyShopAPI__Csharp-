@@ -22,7 +22,7 @@ namespace MyShopAPI.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost]
+        [HttpPost("add_item")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddToCart([FromBody] AddCartDTO item)
@@ -41,6 +41,23 @@ namespace MyShopAPI.Controllers
 
             return Created();
         }
+
+        [HttpPost("add_items")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AddToCart([FromBody] IEnumerable<AddCartDTO> items)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var cartItems = _mapper.Map<IEnumerable<CartAndWishlist>>(items);
+
+            await _unitOfWork.CartsAndWishlists.InsertRange(cartItems);
+
+            await _unitOfWork.Save();
+
+            return Created();
+        }
+
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -62,10 +79,10 @@ namespace MyShopAPI.Controllers
             return Ok(cartItems);
         }
 
-        [HttpPut]
+        [HttpPatch("update_item")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateCartItem([FromBody] AddCartDTO cartDTO)
+        public async Task<IActionResult> UpdateCartItem([FromBody] UpdateCartDTO cartDTO)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -78,14 +95,36 @@ namespace MyShopAPI.Controllers
             return Ok(cartItem);
         }
 
-        [HttpDelete]
+        [HttpPut("update_items")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> DeleteCartItem(AddCartDTO cartDTO)
+        public async Task<IActionResult> UpdateCartItems([FromBody] IEnumerable<UpdateCartDTO> cartDTO)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cartItem = _mapper.Map<CartAndWishlist>(cartDTO);
+            var cartItems = _mapper.Map<IEnumerable<CartAndWishlist>>(cartDTO);
+
+            _unitOfWork.CartsAndWishlists.UpdateRange(cartItems);
+
+            await _unitOfWork.Save();
+
+            return Ok(cartItems);
+
+        }
+
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeleteCartItem([FromQuery] int id)
+        {
+            if (id <= 0) return BadRequest();
+
+            var cartItem = await _unitOfWork.CartsAndWishlists.Get(item=> item.Id == id);
+
+            if (cartItem == null)
+            {
+                return BadRequest();
+            }
 
             _unitOfWork.CartsAndWishlists.Delete(cartItem);
 

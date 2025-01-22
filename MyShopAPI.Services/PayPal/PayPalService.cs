@@ -31,6 +31,8 @@ namespace MyShopAPI.Services.PayPal
         {
             var purchaseUnits = new List<PurchaseUnitRequest>();
 
+            var dateTime = DateTime.Now;
+
             for (int i = 0; i < items.Count(); i++)
             {
                 var item = items[i];
@@ -42,7 +44,7 @@ namespace MyShopAPI.Services.PayPal
                             CurrencyCode = "USD",
                             MValue = $"{(int)(item.Quantity * item.Product.UnitPrice)}",
                         },
-                        ReferenceId = Guid.NewGuid().ToString(),
+                        ReferenceId = $"{dateTime}__{Guid.NewGuid().ToString()}",
                     }
                     );
             }
@@ -58,6 +60,20 @@ namespace MyShopAPI.Services.PayPal
             OrdersController ordersController = _payPalClient.OrdersController;
             ApiResponse<Order> result = await ordersController.OrdersCreateAsync(orders);
             return result;
+        }
+
+        public async Task<ApiResponse<Order>> CaptureOrder(OrdersCaptureInput input)
+        {
+            return await _payPalClient.OrdersController.OrdersCaptureAsync(input);
+        }
+
+        public async Task<ApiResponse<Order>> GetOrder(string orderId)
+        {
+            OrdersGetInput input = new OrdersGetInput
+            {
+                Id = orderId
+            };
+            return await _payPalClient.OrdersController.OrdersGetAsync(input);
         }
     }
 }

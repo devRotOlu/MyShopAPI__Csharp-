@@ -7,12 +7,10 @@ using MyShopAPI.Core.EmailMananger;
 using MyShopAPI.Core.EntityDTO.UserDTO;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
-using System.IdentityModel.Tokens.Jwt;
-using JwtRegNamesCalims = System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using PaypalServerSdk.Standard.Models;
+using JwtRegNamesCalims = System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames;
 
 namespace MyShopAPI.Core.AuthManager
 {
@@ -119,29 +117,23 @@ namespace MyShopAPI.Core.AuthManager
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
         }
 
-        private async Task<IDictionary<string,object>> GetClaims()
+        private async Task<IDictionary<string, object>> GetClaims()
         {
-            var claims = new Dictionary<string,object>();
+            var claims = new Dictionary<string, object>();
             claims.Add(ClaimTypes.Name, User.UserName!);
             claims.Add(JwtRegNamesCalims.Aud, _configuration["Jwt:Issuer"]!);
-            //var claims = new List<Claim>
-            //{
-            //    new Claim(ClaimTypes.Name,User.UserName),
-            //    new Claim(JwtRegNamesCalims.Aud, _configuration["Jwt:Issuer"]!)
-            //};
 
             var roles = await _userManager.GetRolesAsync(User);
 
             foreach (var role in roles)
             {
-                //claims.Add(new Claim(ClaimTypes.Role, role));
                 claims.Add(ClaimTypes.Role, role);
             }
 
             return claims;
         }
 
-        private SecurityTokenDescriptor GenerateTokenOptions(SigningCredentials signingCredentials, IDictionary<string,object> claims)
+        private SecurityTokenDescriptor GenerateTokenOptions(SigningCredentials signingCredentials, IDictionary<string, object> claims)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
 
@@ -149,21 +141,13 @@ namespace MyShopAPI.Core.AuthManager
 
             var tokenExpirationTime = DateTime.Now.AddMinutes(tokenLifetime);
 
-            //var token = new JwtSecurityToken(
-            //        issuer: jwtSettings.GetSection("Issuer").Value,
-            //        audience: jwtSettings.GetSection("Issuer").Value,
-            //        claims: claims,
-            //        expires: tokenExpirationTime,
-            //        signingCredentials: signingCredentials
-            //    );
-
             var token = new SecurityTokenDescriptor
             {
-               Issuer = jwtSettings.GetSection("Issuer").Value,
-               Audience = jwtSettings.GetSection("Issuer").Value,
-               Claims = claims,
-               Expires = tokenExpirationTime,
-               SigningCredentials =signingCredentials
+                Issuer = jwtSettings.GetSection("Issuer").Value,
+                Audience = jwtSettings.GetSection("Issuer").Value,
+                Claims = claims,
+                Expires = tokenExpirationTime,
+                SigningCredentials = signingCredentials
             };
 
             return token;
@@ -203,7 +187,7 @@ namespace MyShopAPI.Core.AuthManager
 
             var refreshTokenLifetime = Convert.ToDouble(_configuration.GetSection("refreshToken:Lifetime").Value);
 
-            var refreshtokenExpirationTime = DateTime.Now.AddHours(refreshTokenLifetime);
+            var refreshtokenExpirationTime = DateTime.Now.AddMinutes(refreshTokenLifetime);
             context.Response.Cookies.Append("refreshToken", tokens.RefreshToken!, new CookieOptions
             {
                 HttpOnly = true,
@@ -232,7 +216,7 @@ namespace MyShopAPI.Core.AuthManager
 
             var tokenHandler = new JsonWebTokenHandler();
             var securityToken = tokenHandler.ReadToken(accessToken);
-            return await tokenHandler.ValidateTokenAsync(securityToken,validationParameters);
+            return await tokenHandler.ValidateTokenAsync(securityToken, validationParameters);
         }
     }
 }

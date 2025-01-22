@@ -160,30 +160,32 @@ namespace MyShopAPI.Controllers
                 RefreshToken = refreshToken,
             }, HttpContext);
 
-            var refreshTokenObj = await _unitOfWork.RefreshTokens.Get(token=>token.CustomerId == customer.Id);
+            var refreshTokenObj = await _unitOfWork.RefreshTokens.Get(token => token.CustomerId == customer.Id);
 
             var expirationTime = _configuration.GetSection("refreshToken:LifeTime").Value;
-            if (refreshTokenObj.Token != null)
+            if (refreshTokenObj != null)
             {
                 _unitOfWork.RefreshTokens.Update(new RefreshToken
                 {
                     Id = refreshTokenObj.Id,
                     CustomerId = customer.Id,
                     Token = refreshToken,
-                    ExpirationTime = DateTime.UtcNow.AddHours(Convert.ToDouble(expirationTime))
+                    ExpirationTime = DateTime.Now.AddMinutes(Convert.ToDouble(expirationTime))
                 });
             }
             else
             {
                 await _unitOfWork.RefreshTokens.Insert(new RefreshToken
                 {
-                   CustomerId = customer.Id,
-                   Token = refreshToken,
-                    ExpirationTime = DateTime.UtcNow.AddHours(Convert.ToDouble(expirationTime))
+                    CustomerId = customer.Id,
+                    Token = refreshToken,
+                    ExpirationTime = DateTime.Now.AddMinutes(Convert.ToDouble(expirationTime))
                 });
             }
 
-            return Accepted(new { user = userInfo });
+            await _unitOfWork.Save();
+
+            return Accepted(userInfo);
         }
 
         [HttpPost("password-reset-email")]
@@ -231,47 +233,63 @@ namespace MyShopAPI.Controllers
 
         [HttpPost("token_refresh")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> RefreshToken()
-        {
+        public async Task<IActionResult> RefreshToken([FromQuery] string customerId)
+         {
             var oldToken = Request.Cookies["refreshToken"];
 
             if (string.IsNullOrEmpty(oldToken))
             {
-                return Unauthorized();
+                return BadRequest();
             }
+
+            var refreshTokenObj = await _unitOfWork.RefreshTokens.Get(token => token.Token == oldToken && token.CustomerId == customerId);
+
+            if (refreshTokenObj == null || refreshTokenObj.ExpirationTime.CompareTo(DateTime.Now) < 0)
+            {
+                return BadRequest();
+            }
+
+            var refreshToken = _authManager.GenerateRefreshToken();
 
             _authManager.SetTokenInCookies(new Tokens
             {
                 AccessToken = await _authManager.CreateToken(),
-                RefreshToken = _authManager.GenerateRefreshToken()
-            },HttpContext);
+                RefreshToken = refreshToken
+            }, HttpContext);
+
+            var expirationTime = _configuration.GetSection("refreshToken:LifeTime").Value;
+
+            _unitOfWork.RefreshTokens.Update(new RefreshToken
+            {
+                Id = refreshTokenObj.Id,
+                CustomerId = refreshTokenObj.CustomerId,
+                Token = refreshToken,
+                ExpirationTime = DateTime.Now.AddMinutes(Convert.ToDouble(expirationTime))
+            });
 
             return Ok();
         }
 
+        [Authorize]
         [HttpGet("validate_token")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ValidateAccessToken()
         {
-            var token = Request.Cookies["accessToken"];
+            var user = await _authManager.GetUserByEmailAsync(User.Identity!.Name!);
 
-            if (string.IsNullOrEmpty(token))
-            {
-                return BadRequest();
-            }
+            if (user == null) return BadRequest();
 
-            var result = await _authManager.ValidateToken(token);
+            var result = await _unitOfWork.CustomerDetails.Get(info => info.CustomerId == user.Id);
 
-            if (!result.IsValid)
-            {
-                return BadRequest();
-            }
+            var userInfo = _mapper.Map<CustomerDTO>(result);
+            userInfo.Id = user.Id;
+            userInfo.Email = user.Email!;
 
-            return Ok();
+            return Ok(userInfo);
         }
 
         [HttpPost("logout")]

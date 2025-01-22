@@ -7,7 +7,7 @@ namespace MyShopAPI.Core.EntityDTO.ProoductDTO
     {
         [Required, StringLength(100,MinimumLength =1)]
         public string Name { get; set; } = null!;
-        [StringLength(300, MinimumLength = 1)]
+        [StringLength(1000, MinimumLength = 1)]
         public string Description { get; set; } = null!;
         [Required, Column(TypeName = "decimal(15,4)")]
         public decimal UnitPrice { get; set; }

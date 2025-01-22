@@ -24,6 +24,7 @@ namespace MyShopAPI.Core.Configurations
                       .ForMember(getCartDTO=>getCartDTO.CartQuantity,opt=>opt.MapFrom(cart=>cart.Quantity));
             CreateMap<CartAndWishlist, AddWishlistDTO>().ReverseMap();
             CreateMap<CartAndWishlist, AddCartDTO>().ReverseMap();
+            CreateMap<CartAndWishlist,UpdateCartDTO>().ReverseMap();
             CreateMap<CartAndWishlist, GetWishlistDTO>();
             CreateMap<Product, AddProductDTO>().ReverseMap();
             CreateMap<Product, GetProductDTO>().ReverseMap();
