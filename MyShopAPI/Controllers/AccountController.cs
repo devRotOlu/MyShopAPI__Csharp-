@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyShopAPI.Core.AuthManager;
@@ -21,15 +22,18 @@ namespace MyShopAPI.Controllers
         private readonly IConfiguration _configuration;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPhotoService _photoService;
+        private readonly IDataProtector _protector;
 
 
-        public AccountController(IMapper mapper, IAuthManager authManager, IConfiguration configuration, IUnitOfWork unitOfWork, IPhotoService photoService)
+
+        public AccountController(IMapper mapper, IAuthManager authManager, IConfiguration configuration, IUnitOfWork unitOfWork, IPhotoService photoService, IDataProtectionProvider provider)
         {
             _mapper = mapper;
             _authManager = authManager;
             _configuration = configuration;
             _unitOfWork = unitOfWork;
             _photoService = photoService;
+            _protector = provider.CreateProtector("MyPurpose");
         }
 
         [HttpPost("signup")]

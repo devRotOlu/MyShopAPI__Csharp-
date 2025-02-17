@@ -8,6 +8,7 @@ using MyShopAPI.Core.Configurations;
 using MyShopAPI.Core.EmailMananger;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Repository;
+using MyShopAPI.customMiddlewares;
 using MyShopAPI.Data;
 using MyShopAPI.Data.Entities;
 using MyShopAPI.Services.Email;
@@ -15,6 +16,7 @@ using MyShopAPI.Services.Image;
 using MyShopAPI.Services.Models;
 using MyShopAPI.Services.Monnify;
 using MyShopAPI.Services.PayPal;
+using MyShopAPI.Services.RSA;
 using Newtonsoft.Json.Converters;
 using System.Text;
 
@@ -68,7 +70,7 @@ builder.Services.AddAuthentication(options =>
        options.RequireHttpsMetadata = true;
        options.SaveToken = true;
 
-       
+
        options.TokenValidationParameters = new TokenValidationParameters
        {
            ValidateIssuer = true,
@@ -95,7 +97,7 @@ builder.Services.AddAuthentication(options =>
        };
    });
 
- 
+
 
 builder.Services.AddSwaggerGen(
     c =>
@@ -144,6 +146,7 @@ builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.Configure<SMTPConfig>(builder.Configuration.GetSection("SMTPConfig"));
 builder.Services.AddScoped<IPayPalService, PayPalService>();
 builder.Services.AddScoped<IMonnifyService, MonnifyService>();
+builder.Services.AddTransient<IRSAService, RSAService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
 builder.Services.AddAutoMapper(typeof(MapperInitializer));
@@ -186,9 +189,13 @@ if (app.Environment.IsDevelopment())
 }
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
+app.UseMiddleware<ConfirmPurchaseMiddleware>();
+//app.UseMiddleware<CardDecryptionMiddleware>();
+app.UseMiddleware<ProductVerificationMiddleware>();
+app.UseMiddleware<CartProductVerificationMiddleware>();
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

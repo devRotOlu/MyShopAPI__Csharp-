@@ -27,7 +27,7 @@ namespace MyShopAPI.Services.PayPal
                             .Build();
         }
 
-        public async Task<ApiResponse<Order>> CreateOrder(List<CartAndWishlist> items)
+        public async Task<ApiResponse<Order>> CreateOrder(List<Cart> items)
         {
             var purchaseUnits = new List<PurchaseUnitRequest>();
 

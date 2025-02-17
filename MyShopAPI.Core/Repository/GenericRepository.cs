@@ -30,7 +30,7 @@ namespace MyShopAPI.Core.Repository
         {
             _db.RemoveRange(entities);
         }
-
+        
         public async Task<T> Get(Expression<Func<T, bool>>? expression, Func<IQueryable<T>, IIncludableQueryable<T, Object>>? include = null)
         {
             IQueryable<T> query = _db;

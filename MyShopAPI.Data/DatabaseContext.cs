@@ -11,7 +11,8 @@ namespace MyShopAPI.Data
         public DatabaseContext(DbContextOptions options) :
             base(options)
         { }
-        public DbSet<CartAndWishlist> CartsAndWishlists { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<Wishlist> Wishlists { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<ProductReview> ProductReviews { get; set; }

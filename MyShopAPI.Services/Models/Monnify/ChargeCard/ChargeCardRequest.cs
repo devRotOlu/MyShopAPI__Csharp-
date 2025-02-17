@@ -3,7 +3,7 @@
     public class ChargeCardRequest
     {
         public string transactionReference { get; set; } = null!;
-        public string collectionChannel { get; set; } = null!;//"API_NOTIFICATION";
+        //public string collectionChannel { get; set; } = null!;//"API_NOTIFICATION";
         public CardDetails card { get; set; } = null!;
     }
 

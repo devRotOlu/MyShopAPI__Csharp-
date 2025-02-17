@@ -22,20 +22,16 @@ namespace MyShopAPI.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost]
+        [HttpPost("add_item")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddToWishlist([FromBody] AddWishlistDTO item)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var result = await _unitOfWork.Products.Get(product => product.Id == item.ProductId && product.Quantity > 0);
+            var cartItem = _mapper.Map<Wishlist>(item);
 
-            if (result == null) return BadRequest();
-
-            var cartItem = _mapper.Map<CartAndWishlist>(item);
-
-            await _unitOfWork.CartsAndWishlists.Insert(cartItem);
+            await _unitOfWork.Wishlists.Insert(cartItem);
             await _unitOfWork.Save();
 
             return Created();
@@ -53,7 +49,7 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var results = await _unitOfWork.CartsAndWishlists.GetAll(item => item.CustomerId == customer.Id && item.Quantity == 0, include: item => item.Include(item => item.Product)
+            var results = await _unitOfWork.Wishlists.GetAll(item => item.CustomerId == customer.Id, include: item => item.Include(item => item.Product)
                                             .ThenInclude(product => product.Images));
 
             var cartItems = _mapper.Map<IEnumerable<GetWishlistDTO>>(results);
@@ -68,11 +64,11 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var item = await _unitOfWork.CartsAndWishlists.Get(item=>item.CustomerId == wishlistDTO.CustomerId && item.ProductId == wishlistDTO.ProductId && item.Quantity == 0);
+            var item = await _unitOfWork.Wishlists.Get(item=>item.CustomerId == wishlistDTO.CustomerId && item.ProductId == wishlistDTO.ProductId);
 
             if (item == null) return BadRequest();
 
-            _unitOfWork.CartsAndWishlists.Delete(item);
+            _unitOfWork.Wishlists.Delete(item);
 
             await _unitOfWork.Save();
 

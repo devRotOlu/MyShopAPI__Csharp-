@@ -33,7 +33,7 @@ namespace MyShopAPI.Controllers
 
             if (user == null) return BadRequest();
 
-            var items = await _unitOfWork.CartsAndWishlists.GetAll(item => item.CustomerId == customerId && item.Quantity != 0, include: item => item.Include(item => item.Product));
+            var items = await _unitOfWork.Carts.GetAll(item => item.CustomerId == customerId && item.Quantity != 0, include: item => item.Include(item => item.Product));
 
             if (items == null || items.Count() == 0) return BadRequest();
 

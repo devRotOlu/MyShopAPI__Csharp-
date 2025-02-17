@@ -5,6 +5,7 @@ using MyShopAPI.Core.AuthManager;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Services.Models.Monnify.ChargeCard;
 using MyShopAPI.Services.Monnify;
+using MyShopAPI.Services.RSA;
 
 namespace MyShopAPI.Controllers
 {
@@ -16,12 +17,16 @@ namespace MyShopAPI.Controllers
         private readonly IMonnifyService _monnifyService;
         private readonly IAuthManager _authManager;
         private readonly IUnitOfWork _unitOfWork;
+        //private readonly IDataProtector _protector;
+        private readonly IRSAService _raService;
 
-        public MonnifyCheckoutController(IMonnifyService monnifyService, IAuthManager authManager, IUnitOfWork unitOfWork)
+        public MonnifyCheckoutController(IMonnifyService monnifyService, IAuthManager authManager, IUnitOfWork unitOfWork, IRSAService rSAService)
         {
             _monnifyService = monnifyService;
             _authManager = authManager;
             _unitOfWork = unitOfWork;
+            _raService = rSAService;
+            //_protector = provider.CreateProtector("MyPurpose");
         }
 
         [HttpGet("initialize")]
@@ -29,6 +34,7 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> InitializeTransaction(string customerEmail)
         {
+
             var user = await _authManager.GetUserByEmailAsync(customerEmail);
 
             if (user == null)
@@ -38,11 +44,11 @@ namespace MyShopAPI.Controllers
 
             await _monnifyService.Authorization();
 
-            var items = await _unitOfWork.CartsAndWishlists.GetAll(item => item.CustomerId == user.Id && item.Quantity != 0, include: item => item.Include(item => item.Product));
+            var items = await _unitOfWork.Carts.GetAll(item => item.CustomerId == user.Id && item.Quantity != 0, include: item => item.Include(item => item.Product));
 
             var transactionReference = await _monnifyService.InitilaizeTransaction(items.ToList(), customerEmail);
 
-            return Ok(new {transactionReference});
+            return Ok(new { transactionReference });
         }
 
         [HttpGet("bank_transfer")]
@@ -52,7 +58,7 @@ namespace MyShopAPI.Controllers
         {
             if (string.IsNullOrEmpty(bankCode) || string.IsNullOrEmpty(transactionReference))
             {
-                return BadRequest(); 
+                return BadRequest();
             }
 
             await _monnifyService.Authorization();
@@ -70,9 +76,32 @@ namespace MyShopAPI.Controllers
                 return BadRequest(ModelState);
             }
 
+            //FromBase64Transform fromBase64Transform = new FromBase64Transform();
+            //var cipherByte = Convert.FromBase64String(body);
+
+            //var decrypted = _raService.Decrypt(cipherByte);
+
             await _monnifyService.Authorization();
 
             var result = await _monnifyService.CardPayment(chargeCard);
+
+            return Ok();
+        }
+
+        [HttpGet("transaction_status")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetTransactionStatus([FromQuery] string transactionRef)
+        {
+            if (string.IsNullOrEmpty(transactionRef))
+            {
+                return BadRequest();
+            }
+
+            await _monnifyService.Authorization();
+
+            var result = await _monnifyService.GetTransactionStatus(transactionRef);
+
             return Ok(result);
         }
     }

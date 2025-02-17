@@ -29,13 +29,9 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var result = await _unitOfWork.Products.Get(product => product.Id == item.ProductId && product.Quantity > 0);
+            var cartItem = _mapper.Map<Cart>(item);
 
-            if (result == null) return BadRequest();
-
-            var cartItem = _mapper.Map<CartAndWishlist>(item);
-
-            await _unitOfWork.CartsAndWishlists.Insert(cartItem);
+            await _unitOfWork.Carts.Insert(cartItem);
 
             await _unitOfWork.Save();
 
@@ -49,9 +45,9 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cartItems = _mapper.Map<IEnumerable<CartAndWishlist>>(items);
+            var cartItems = _mapper.Map<IEnumerable<Cart>>(items);
 
-            await _unitOfWork.CartsAndWishlists.InsertRange(cartItems);
+            await _unitOfWork.Carts.InsertRange(cartItems);
 
             await _unitOfWork.Save();
 
@@ -71,7 +67,7 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var results = await _unitOfWork.CartsAndWishlists.GetAll(item => item.CustomerId == customer.Id && item.Quantity != 0, include: item => item.Include(item => item.Product)
+            var results = await _unitOfWork.Carts.GetAll(item => item.CustomerId == customer.Id && item.Quantity != 0, include: item => item.Include(item => item.Product)
                     .ThenInclude(product => product.Images));
 
             var cartItems = _mapper.Map<IEnumerable<GetCartDTO>>(results);
@@ -86,9 +82,9 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cartItem = _mapper.Map<CartAndWishlist>(cartDTO);
+            var cartItem = _mapper.Map<Cart>(cartDTO);
 
-            _unitOfWork.CartsAndWishlists.Update(cartItem);
+            _unitOfWork.Carts.Update(cartItem);
 
             await _unitOfWork.Save();
 
@@ -102,9 +98,9 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cartItems = _mapper.Map<IEnumerable<CartAndWishlist>>(cartDTO);
+            var cartItems = _mapper.Map<IEnumerable<Cart>>(cartDTO);
 
-            _unitOfWork.CartsAndWishlists.UpdateRange(cartItems);
+            _unitOfWork.Carts.UpdateRange(cartItems);
 
             await _unitOfWork.Save();
 
@@ -119,14 +115,14 @@ namespace MyShopAPI.Controllers
         {
             if (id <= 0) return BadRequest();
 
-            var cartItem = await _unitOfWork.CartsAndWishlists.Get(item=> item.Id == id);
+            var cartItem = await _unitOfWork.Carts.Get(item=> item.Id == id);
 
             if (cartItem == null)
             {
                 return BadRequest();
             }
 
-            _unitOfWork.CartsAndWishlists.Delete(cartItem);
+            _unitOfWork.Carts.Delete(cartItem);
 
             await _unitOfWork.Save();
 
