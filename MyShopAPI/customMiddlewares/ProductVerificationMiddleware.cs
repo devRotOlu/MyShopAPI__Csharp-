@@ -2,7 +2,7 @@
 using MyShopAPI.Core.EntityDTO.ProductReviewDTO;
 using MyShopAPI.Core.EntityDTO.WishlistDTO;
 
-namespace MyShopAPI.customMiddlewares
+namespace MyShopAPI.CustomMiddlewares
 {
     public class ProductVerificationMiddleware : VerificationMiddleware
     {

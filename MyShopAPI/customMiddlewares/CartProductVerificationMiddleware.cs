@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace MyShopAPI.customMiddlewares
+namespace MyShopAPI.CustomMiddlewares
 {
     public class CartProductVerificationMiddleware : VerificationMiddleware
     {
@@ -63,30 +63,39 @@ namespace MyShopAPI.customMiddlewares
 
                     var cartItem = await _unitOfWork.Carts.Get(cart => cart.CustomerId == (string)_customerId && cart.ProductId == (int)_productId);
 
-                    if (cartItem != null)
+                    if (cartItem.Quantity == 0)
                     {
+
+                        var data = JsonConvert.DeserializeObject<AddCartDTO>(dataString);
+
                         context.Request.Path = "/api/Cart/update_item";
 
-                        context.Request.Method = "PATCH";
+                        context.Request.Method = "PUT";
 
                         var updateDTO = new UpdateCartDTO
                         {
                             Id = cartItem.Id,
                             CustomerId = cartItem.CustomerId,
                             ProductId = cartItem.ProductId,
-                            Quantity = cartItem.Quantity,
+                            Quantity = data!.Quantity,
                         };
 
                         var jsonObj = JsonConvert.SerializeObject(updateDTO);
 
-                        var requestContent = new StringContent(jsonObj, Encoding.UTF8, "application/json");
+                        var stringContent = new StringContent(jsonObj, Encoding.UTF8, "application/json");
 
-                        var stream = await requestContent.ReadAsStreamAsync();
+                        var stream = await stringContent.ReadAsStreamAsync();
 
                         context.Request.Body = stream;
 
                         context.Request.ContentLength = context.Request.Body.Length;
 
+                    }
+                    else if (cartItem.Quantity > 0)
+                    {
+                        Func<bool, bool> _verifyItem = isTrue => isTrue == true;
+
+                        VerifyItem(_verifyItem, true); 
                     }
                 }
             }

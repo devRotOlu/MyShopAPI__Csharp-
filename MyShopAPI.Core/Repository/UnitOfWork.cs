@@ -15,7 +15,7 @@ namespace MyShopAPI.Core.Repository
         public IGenericRepository<RefreshToken> RefreshTokens { get; set; }
         public IGenericRepository<Cart> Carts { get; set; }
         public IGenericRepository<Wishlist> Wishlists { get; set; }
-    
+        public IGenericRepository<DeliveryProfile> DeliveryProfiles { get; set; }
 
         public UnitOfWork(DatabaseContext databaseContext)
         {
@@ -27,6 +27,7 @@ namespace MyShopAPI.Core.Repository
             ProductReviews = new GenericRepository<ProductReview>(databaseContext);
             CustomerDetails = new GenericRepository<CustomerDetails>(databaseContext);
             RefreshTokens = new GenericRepository<RefreshToken>(databaseContext);
+            DeliveryProfiles = new GenericRepository<DeliveryProfile>(databaseContext);
             _databaseContext = databaseContext;
         }
 

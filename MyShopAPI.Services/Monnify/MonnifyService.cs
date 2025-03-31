@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using MyShopAPI.Data.Entities;
+using MyShopAPI.Services.Errors;
 using MyShopAPI.Services.Models.Monnify;
 using MyShopAPI.Services.Models.Monnify.BankTransfer;
 using MyShopAPI.Services.Models.Monnify.ChargeCard;
@@ -31,22 +32,17 @@ namespace MyShopAPI.Services.Monnify
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", $"{Convert.ToBase64String(keysByte)}");
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            var json = string.Empty;
+            var authResponse = await SendRequest<AuthResponse>(httpClient, "/api/v1/auth/login", null, "", HttpMethod.Post);
 
-            try
+            if (!authResponse!.RequestSuccessful || authResponse.ResponseMessage.ToUpper() != "SUCCESS")
             {
-               json = await SendRequest(httpClient, "api/v1/auth/login", null, "", HttpMethod.Post);
-            }
-            catch (Exception)
-            {
-
+                throw new PaymentAuthorizationException();
             }
 
-            var authResponse = JsonConvert.DeserializeObject<AuthResponse>(json);
             token = authResponse!.ResponseBody.AccessToken;
         }
 
-        public async Task<string> InitilaizeTransaction(List<Cart> items, string cutomerEmail)
+        public async Task<InitialTransactionResponse> InitilaizeTransaction(List<Cart> items, string cutomerEmail)
         {
             float amount = 0.00f;
 
@@ -71,10 +67,9 @@ namespace MyShopAPI.Services.Monnify
 
             var jsonContent = JsonConvert.SerializeObject(requestContent);
 
-            var json = await SendRequest(httpClient, "/api/v1/merchant/transactions/init-transaction", Encoding.UTF8, jsonContent, HttpMethod.Post);
-            var transactResponse = JsonConvert.DeserializeObject<InitialTransactionResponse>(json);
+            var transactResponse = await SendRequest<InitialTransactionResponse>(httpClient, "/api/v1/merchant/transactions/init-transaction", Encoding.UTF8, jsonContent, HttpMethod.Post);
 
-            return transactResponse.ResponseBody.TransactionReference;
+            return transactResponse!;
         }
 
         public async Task<BankTransferResponse> GetBankTransferInfo(string bankCode, string transactionReference)
@@ -87,11 +82,9 @@ namespace MyShopAPI.Services.Monnify
 
             var jsonContent = JsonConvert.SerializeObject(requestContent);
 
-            var json = await SendRequest(httpClient, "/api/v1/merchant/bank-transfer/init-payment", Encoding.UTF8, jsonContent, HttpMethod.Post);
+            var result = await SendRequest<BankTransferResponse>(httpClient, "/api/v1/merchant/bank-transfer/init-payment", Encoding.UTF8, jsonContent, HttpMethod.Post);
 
-            var result = JsonConvert.DeserializeObject<BankTransferResponse>(json);
-
-            return result;
+            return result!;
         }
 
         public async Task<ChargeCardResponse> CardPayment(ChargeCardRequest chargeCard)
@@ -102,10 +95,9 @@ namespace MyShopAPI.Services.Monnify
 
             var jsonContent = JsonConvert.SerializeObject(chargeCard);
 
-            var json = await SendRequest(httpClient, "/api/v1/merchant/cards/charge", Encoding.UTF8, jsonContent,HttpMethod.Post);
-            var result = JsonConvert.DeserializeObject<ChargeCardResponse>(json);
+            var result = await SendRequest<ChargeCardResponse>(httpClient, "/api/v1/merchant/cards/charge", Encoding.UTF8, jsonContent, HttpMethod.Post);
 
-            return result;
+            return result!;
         }
 
         public async Task<TransactionStatus> GetTransactionStatus(string transactionRef)
@@ -114,10 +106,9 @@ namespace MyShopAPI.Services.Monnify
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var json = await SendRequest(httpClient, $"/api/v2/transactions/{transactionRef}", null, "",HttpMethod.Get);
-            var result = JsonConvert.DeserializeObject<TransactionStatus>(json);
+            var result = await SendRequest<TransactionStatus>(httpClient, $"/api/v2/transactions/{transactionRef}", null, "",HttpMethod.Get);
 
-            return result;
+            return result!;
         }
 
         private HttpClient InitializeHTTPClient()
@@ -127,7 +118,7 @@ namespace MyShopAPI.Services.Monnify
             return httpClient;
         }
 
-        private async Task<string> SendRequest(HttpClient httpClient, string url, Encoding? encoding, string requestContent,HttpMethod httpMethod)
+        private async Task<T?> SendRequest<T>(HttpClient httpClient, string url, Encoding? encoding, string requestContent,HttpMethod httpMethod) 
         {
             HttpRequestMessage request = new HttpRequestMessage(httpMethod, url);
             request.Content = new StringContent(requestContent, encoding, "application/json");
@@ -136,9 +127,11 @@ namespace MyShopAPI.Services.Monnify
 
             var json = await response.Content.ReadAsStringAsync();
 
+            var result = JsonConvert.DeserializeObject<T>(json);
+
             httpClient.Dispose();
 
-            return json;
+            return result;
         }
     }
 }

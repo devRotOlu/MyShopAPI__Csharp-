@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using System.Net;
 
-namespace MyShopAPI.customMiddlewares
+namespace MyShopAPI.CustomMiddlewares
 {
     public class VerificationMiddleware
     {
@@ -59,7 +59,7 @@ namespace MyShopAPI.customMiddlewares
             return _unitOfWork;
         }
 
-        public void VerifyItem<T>(Func<T, bool> exp, T data) where T : class
+        public void VerifyItem<T>(Func<T, bool> exp, T data) 
         {
             if (exp.Invoke(data))
             {

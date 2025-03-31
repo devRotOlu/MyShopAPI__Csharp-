@@ -51,13 +51,13 @@ namespace MyShopAPI.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "37be7522-e14a-46fe-b33a-b61e78379df6",
+                            Id = "560e6c64-b5db-4b2a-971c-8c22b2860a92",
                             Name = "customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = "82398f5b-528e-4dab-868a-1e8ee1a729be",
+                            Id = "ce4c298d-c03b-4a1e-aa8f-d17a95441a93",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });
@@ -266,7 +266,7 @@ namespace MyShopAPI.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("BillingAddress")
+                    b.Property<string>("City")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CustomerId")
@@ -281,17 +281,10 @@ namespace MyShopAPI.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
+                    b.Property<string>("State")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ProfilePicturePublicId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProfilePictureUrI")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ShippingAddress")
+                    b.Property<string>("StreetAddress")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -300,6 +293,59 @@ namespace MyShopAPI.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("CustomersDetails");
+                });
+
+            modelBuilder.Entity("MyShopAPI.Data.Entities.DeliveryProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdditionalInformation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Directions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LGA")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StreetAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("DeliveryProfiles");
                 });
 
             modelBuilder.Entity("MyShopAPI.Data.Entities.Product", b =>
@@ -505,6 +551,17 @@ namespace MyShopAPI.Data.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("MyShopAPI.Data.Entities.DeliveryProfile", b =>
+                {
+                    b.HasOne("MyShopAPI.Data.Entities.Customer", "Customer")
+                        .WithMany("DeliveryProfiles")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("MyShopAPI.Data.Entities.ProductImage", b =>
                 {
                     b.HasOne("MyShopAPI.Data.Entities.Product", "Product")
@@ -519,7 +576,7 @@ namespace MyShopAPI.Data.Migrations
             modelBuilder.Entity("MyShopAPI.Data.Entities.ProductReview", b =>
                 {
                     b.HasOne("MyShopAPI.Data.Entities.Product", "Product")
-                        .WithMany()
+                        .WithMany("Reviews")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -567,6 +624,8 @@ namespace MyShopAPI.Data.Migrations
 
             modelBuilder.Entity("MyShopAPI.Data.Entities.Customer", b =>
                 {
+                    b.Navigation("DeliveryProfiles");
+
                     b.Navigation("Details")
                         .IsRequired();
                 });
@@ -574,6 +633,8 @@ namespace MyShopAPI.Data.Migrations
             modelBuilder.Entity("MyShopAPI.Data.Entities.Product", b =>
                 {
                     b.Navigation("Images");
+
+                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

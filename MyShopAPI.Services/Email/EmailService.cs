@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.Options;
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.Extensions.Options;
+using MimeKit;
+using MimeKit.Text;
 using MyShopAPI.Services.Models;
 using MyShopAPI.Services.ServiceOptions;
-using System.Net.Mail;
-using System.Net;
-using System.Text;
 
 namespace MyShopAPI.Services.Email
 {
@@ -32,7 +33,7 @@ namespace MyShopAPI.Services.Email
         {
             userEmailOptions.Subject = "Reset your password";
 
-            var templateName = isResetPasswordPage? "ForgetPasswordPage" : "ForgetPasswordTest";
+            var templateName = isResetPasswordPage ? "ForgetPasswordPage" : "ForgetPasswordTest";
 
             userEmailOptions.Body = UpdatePlaceholders(GetEmailBody(templateName), userEmailOptions.PlaceHolders);
 
@@ -64,43 +65,24 @@ namespace MyShopAPI.Services.Email
 
         private async Task SendEmail(UserEmailOptions userEmailOptions)
         {
+            var emailMessage = new MimeMessage();
 
-            MailMessage mail = new MailMessage()
-            {
-                Subject = userEmailOptions.Subject,
-                Body = userEmailOptions.Body,
-                From = new MailAddress(_smtpConfig!.SenderAddress, _smtpConfig.SenderDisplayName),
-                IsBodyHtml = _smtpConfig.IsBodyHTML,
-            };
+            emailMessage.From.Add(new MailboxAddress(_smtpConfig.SenderName, _smtpConfig!.SenderEmail));
+            emailMessage.Subject = userEmailOptions.Subject;
+            emailMessage.Body = new TextPart(TextFormat.Html) { Text = userEmailOptions.Body };
 
             foreach (var toEmail in userEmailOptions.ToEmails)
             {
-                mail.To.Add(toEmail);
+                emailMessage.To.Add(new MailboxAddress("", toEmail));
             }
 
-            NetworkCredential networkCredential = new NetworkCredential(_smtpConfig.UserName, _smtpConfig.Password);
-
-            SmtpClient smtpClient = new SmtpClient
+            using (var smtp = new SmtpClient())
             {
-                Host = _smtpConfig.Host,
-                Port = _smtpConfig.Port,
-                EnableSsl = _smtpConfig.EnableSSL,
-                UseDefaultCredentials = _smtpConfig.UseDefaultCredentials,
-                Credentials = networkCredential,
-                DeliveryMethod = SmtpDeliveryMethod.Network
-            };
-
-            mail.BodyEncoding = Encoding.Default;
-
-            try
-            {
-                await smtpClient.SendMailAsync(mail);
-            }
-            catch (Exception ex) 
-            {
-                Console.WriteLine(ex.ToString());
-            }
-            smtpClient.Dispose();
+                await smtp.ConnectAsync(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, _smtpConfig.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
+                await smtp.AuthenticateAsync(_smtpConfig.SenderEmail, _smtpConfig.Password);
+                await smtp.SendAsync(emailMessage);
+                await smtp.DisconnectAsync(true);
+            } 
         }
     }
 }

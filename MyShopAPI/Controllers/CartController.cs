@@ -56,7 +56,7 @@ namespace MyShopAPI.Controllers
 
 
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetCartItems([FromQuery] string email)
         {
@@ -75,7 +75,7 @@ namespace MyShopAPI.Controllers
             return Ok(cartItems);
         }
 
-        [HttpPatch("update_item")]
+        [HttpPut("update_item")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateCartItem([FromBody] UpdateCartDTO cartDTO)

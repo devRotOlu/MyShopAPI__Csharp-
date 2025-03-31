@@ -49,17 +49,6 @@ namespace MyShopAPI.Core.Repository
             await _db.AddRangeAsync(entities);
         }
 
-        public async Task<T> TrackedGet(Expression<Func<T, bool>>? expression, Func<IQueryable<T>, IIncludableQueryable<T, Object>>? include = null)
-        {
-            IQueryable<T> query = _db;
-
-            if (include != null)
-            {
-                query = include(query);
-            }
-
-            return await query.FirstOrDefaultAsync(expression);
-        }
 
         public async Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>>? expression = null, Func<IQueryable<T>, IIncludableQueryable<T, Object>>? include = null)
         {

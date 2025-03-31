@@ -2,22 +2,16 @@
 {
     public class SMTPConfig
     {
-        public string SenderAddress { get; set; } = null!;
+        public string SenderEmail { get; set; } = null!;
 
-        public string SenderDisplayName { get; set; } = null!;
-
-        public string UserName { get; set; } = null!;
+        public string SenderName { get; set; } = null!;
 
         public string Password { get; set; } = null!;
 
-        public string Host { get; set; } =null!;
+        public string SmtpServer { get; set; } = null!;
 
-        public int Port { get; set; }
+        public int SmtpPort { get; set; }
 
-        public bool EnableSSL { get; set; }
-
-        public bool UseDefaultCredentials { get; set; }
-
-        public bool IsBodyHTML { get; set; }
+        public bool UseSSL { get; set; }
     }
 }

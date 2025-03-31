@@ -1,14 +1,11 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using MyShopAPI;
 using MyShopAPI.Core.AuthManager;
 using MyShopAPI.Core.Configurations;
 using MyShopAPI.Core.EmailMananger;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Repository;
-using MyShopAPI.customMiddlewares;
+using MyShopAPI.CustomMiddlewares;
 using MyShopAPI.Data;
 using MyShopAPI.Data.Entities;
 using MyShopAPI.Services.Email;
@@ -18,17 +15,12 @@ using MyShopAPI.Services.Monnify;
 using MyShopAPI.Services.PayPal;
 using MyShopAPI.Services.RSA;
 using Newtonsoft.Json.Converters;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddDbContext<DatabaseContext>(option =>
-{
-    option.UseSqlServer(builder.Configuration.GetConnectionString("sqlconnection"));
-    option.ConfigureWarnings(warnings => warnings.Log(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-});
+builder.Services.ConfigureDBContext(builder);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -40,103 +32,11 @@ builder.Services.AddControllers()
         op.SerializerSettings.Converters.Add(new StringEnumConverter());
     });
 
-builder.Services.AddIdentity<Customer, IdentityRole>(option =>
-{
-    option.Password.RequireNonAlphanumeric = true;
-    option.Password.RequireDigit = true;
-    option.Password.RequireLowercase = true;
-    option.Password.RequireUppercase = true;
+builder.Services.ConfigureIdentity();
 
-    option.User.RequireUniqueEmail = true;
-    option.SignIn.RequireConfirmedEmail = true;
-    option.SignIn.RequireConfirmedAccount = true;
-});
+builder.Services.ConfigureAuthentication(builder);
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-  .AddCookie(options =>
-    {
-        options.Cookie.Name = "accessToken";
-    })
-   .AddJwtBearer(options =>
-   {
-       var jwtSettings = builder.Configuration.GetSection("Jwt");
-       var key = jwtSettings.GetSection("key").Value;
-
-       options.IncludeErrorDetails = true;
-       options.RequireHttpsMetadata = true;
-       options.SaveToken = true;
-
-
-       options.TokenValidationParameters = new TokenValidationParameters
-       {
-           ValidateIssuer = true,
-           ValidateAudience = true,
-           ValidAudience = jwtSettings.GetSection("Issuer").Value,
-           ValidateLifetime = true,
-           ValidIssuer = jwtSettings.GetSection("Issuer").Value,
-           ValidateIssuerSigningKey = true,
-           IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!)),
-           RequireExpirationTime = true,
-       };
-
-       // to implement httponly cookie JSON Web Token
-       options.Events = new JwtBearerEvents
-       {
-           OnMessageReceived = ctx =>
-           {
-               if (ctx.Request.Cookies.ContainsKey("accessToken"))
-               {
-                   ctx.Token = ctx.Request.Cookies["accessToken"];
-               }
-               return Task.CompletedTask;
-           }
-       };
-   });
-
-
-
-builder.Services.AddSwaggerGen(
-    c =>
-    {
-        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-        {
-            Description = @"JWT Authorization bearer using the Bearer scheme. Enter 'Bearer' [space] and then enter your token in the text input below. Example: 'Bearer 1234abcde' ",
-            Name = "Authorization",
-            In = ParameterLocation.Header,
-            //    Type = SecuritySchemeType.ApiKey,
-            Scheme = JwtBearerDefaults.AuthenticationScheme,
-            Type = SecuritySchemeType.Http,
-            BearerFormat = "JWT"
-        });
-
-
-        c.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
-                        {
-                            new OpenApiSecurityScheme
-                            {
-                                Reference = new OpenApiReference
-                                {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "Bearer",
-                                },
-                                Scheme = "Oauth2",
-                                Name = "Bearer",
-                                In = ParameterLocation.Header
-                            },
-
-                            new List<string>()
-                        }
-        });
-
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "MyShopAPI", Version = "v1" });
-    }
-);
-
+builder.Services.ConfigureSwagger();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailManager, EmailManager>();
@@ -151,18 +51,6 @@ builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(
 
 builder.Services.AddAutoMapper(typeof(MapperInitializer));
 
-builder.Services.AddSingleton(x =>
-{
-    return new PayPalClient
-    {
-        BaseUrl = builder.Configuration["PayPal:BaseURI"]!,
-        ClientId = builder.Configuration["PayPal:ClientID"]!,
-        ClientSecret = builder.Configuration["PayPal:SecretKey"]!,
-        Mode = builder.Configuration["PayPal:Mode"]!,
-    };
-});
-
-/// new
 builder.Services.AddAuthorization();
 
 builder.Services.AddCors(corsOptions =>
@@ -189,7 +77,8 @@ if (app.Environment.IsDevelopment())
 }
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
-app.UseMiddleware<ConfirmPurchaseMiddleware>();
+
+app.UseMiddleware<ExceptionMiddleware>();
 //app.UseMiddleware<CardDecryptionMiddleware>();
 app.UseMiddleware<ProductVerificationMiddleware>();
 app.UseMiddleware<CartProductVerificationMiddleware>();

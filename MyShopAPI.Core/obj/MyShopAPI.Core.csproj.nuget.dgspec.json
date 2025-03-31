@@ -223,6 +223,10 @@
               "target": "Package",
               "version": "[1.26.2, )"
             },
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.11.0, )"
+            },
             "Microsoft.AspNetCore.Http.Features": {
               "target": "Package",
               "version": "[5.0.17, )"
@@ -230,6 +234,10 @@
             "Microsoft.Extensions.Options": {
               "target": "Package",
               "version": "[9.0.0, )"
+            },
+            "MimeKit": {
+              "target": "Package",
+              "version": "[4.11.0, )"
             },
             "PayPalServerSDK": {
               "target": "Package",

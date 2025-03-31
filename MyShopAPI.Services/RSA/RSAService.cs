@@ -14,7 +14,7 @@ namespace MyShopAPI.Services.RSA
         public RSAService()
         {
             string private_pem = @"Key/privatekey.pem";
-            _privateKey = GetPrivateKeyFromPemFile(private_pem);
+            //_privateKey = GetPrivateKeyFromPemFile(private_pem);
         }
 
         public string Decrypt(byte[] rgb)
@@ -23,17 +23,17 @@ namespace MyShopAPI.Services.RSA
             return Encoding.UTF8.GetString(decryptedBytes, 0, decryptedBytes.Length);
         }
 
-        private RSACryptoServiceProvider GetPrivateKeyFromPemFile(string filePath)
-        {
-            using (TextReader privateKeyTextReader = new StringReader(File.ReadAllText(filePath)))
-            {
-                AsymmetricCipherKeyPair readKeyPair = (AsymmetricCipherKeyPair)new PemReader(privateKeyTextReader).ReadObject();
+        //private RSACryptoServiceProvider GetPrivateKeyFromPemFile(string filePath)
+        //{
+        //    using (TextReader privateKeyTextReader = new StringReader(File.ReadAllText(filePath)))
+        //    {
+        //        AsymmetricCipherKeyPair readKeyPair = (AsymmetricCipherKeyPair)new PemReader(privateKeyTextReader).ReadObject();
 
-                RSAParameters rsaParams = DotNetUtilities.ToRSAParameters((RsaPrivateCrtKeyParameters)readKeyPair.Private);
-                RSACryptoServiceProvider csp = new RSACryptoServiceProvider();
-                csp.ImportParameters(rsaParams);
-                return csp;
-            }
-        }
+        //        RSAParameters rsaParams = DotNetUtilities.ToRSAParameters((RsaPrivateCrtKeyParameters)readKeyPair.Private);
+        //        RSACryptoServiceProvider csp = new RSACryptoServiceProvider();
+        //        csp.ImportParameters(rsaParams);
+        //        return csp;
+        //    }
+        //}
     }
 }

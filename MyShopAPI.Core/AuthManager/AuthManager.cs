@@ -16,6 +16,7 @@ namespace MyShopAPI.Core.AuthManager
 {
     public class AuthManager : IAuthManager
     {
+        
         private readonly UserManager<Customer> _userManager;
         private readonly IConfiguration _configuration;
         private static Customer _user;
@@ -34,6 +35,7 @@ namespace MyShopAPI.Core.AuthManager
 
         public async Task<IdentityResult> AddToRolesAsync(Customer appUser, IEnumerable<string> roles)
         {
+            
             return await _userManager.AddToRolesAsync(appUser, roles);
         }
 
@@ -59,6 +61,20 @@ namespace MyShopAPI.Core.AuthManager
 
             return new JsonWebTokenHandler().CreateToken(tokenDescriptor);
         }
+
+        public async Task<IdentityResult> ChangePasswordAsync(Customer user,string currentPassword,string newPassword)
+        {
+            try
+            {
+                return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
 
         public async Task GenerateEmailConfirmationTokenAsync(Customer user, string memberFirstName, string? emailConfirmationLink = null)
         {
@@ -217,6 +233,11 @@ namespace MyShopAPI.Core.AuthManager
             var tokenHandler = new JsonWebTokenHandler();
             var securityToken = tokenHandler.ReadToken(accessToken);
             return await tokenHandler.ValidateTokenAsync(securityToken, validationParameters);
+        }
+
+        public async Task<IdentityResult> DeleteAccount(Customer user)
+        {
+            return await _userManager.DeleteAsync(user);
         }
     }
 }

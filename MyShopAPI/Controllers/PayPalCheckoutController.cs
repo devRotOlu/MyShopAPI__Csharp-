@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyShopAPI.Core.AuthManager;
 using MyShopAPI.Core.IRepository;
+using MyShopAPI.Helpers;
 using MyShopAPI.Services.PayPal;
 using PaypalServerSdk.Standard.Models;
 
@@ -53,6 +54,8 @@ namespace MyShopAPI.Controllers
             {
                 return BadRequest();
             }
+
+            await _unitOfWork.ClearCart(User);
 
             return Ok();
         }

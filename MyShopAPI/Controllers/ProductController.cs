@@ -67,7 +67,9 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetProducts()
         {
-            var results = await _unitOfWork.Products.GetAll(product => product.Quantity != 0, include: product => product.Include(product => product.Images));
+            var results = await _unitOfWork.Products.GetAll(product => product.Quantity != 0, include: product => product.Include(product => product.Images)
+                .Include(product=>product.Reviews)
+                .ThenInclude(review=>review.Reviewer));
 
             if (results == null)
             {
@@ -75,7 +77,29 @@ namespace MyShopAPI.Controllers
             }
 
             var products = _mapper.Map<IEnumerable<GetProductDTO>>(results);
+
             return Ok(products);
+        }
+
+
+        [HttpPatch("update-product")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateProduct(GetProductDTO productDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var product = _mapper.Map<Product>(productDTO);
+
+            _unitOfWork.Products.Update(product);
+
+            await _unitOfWork.Save();
+
+            return NoContent();
         }
 
         [HttpPost("add-review")]

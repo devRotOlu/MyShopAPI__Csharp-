@@ -10,7 +10,6 @@ namespace MyShopAPI.Core.IRepository
         IEnumerable<T> GetAll(RequestParams requestParams, Expression<Func<T, bool>>? expression = null, List<string>? includes = null);
         Task<T> Get(Expression<Func<T, bool>>? expression, Func<IQueryable<T>, IIncludableQueryable<T, Object>>? include = null);
         Task Insert(T entity);
-        Task<T> TrackedGet(Expression<Func<T, bool>>? expression, Func<IQueryable<T>, IIncludableQueryable<T, Object>>? include = null);
         Task InsertRange(IEnumerable<T> entities);
         void Delete(T entity);
         void DeleteRange(IEnumerable<T> entities);

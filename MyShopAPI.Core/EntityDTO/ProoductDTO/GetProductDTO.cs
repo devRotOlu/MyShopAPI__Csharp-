@@ -1,8 +1,9 @@
-﻿namespace MyShopAPI.Core.EntityDTO.ProoductDTO
+﻿using MyShopAPI.Core.EntityDTO.UserDTO;
+
+namespace MyShopAPI.Core.EntityDTO.ProoductDTO
 {
-    public class GetProductDTO : ProductDTO
+    public class GetProductDTO : BaseGetProductDTO
     {
-        public int Id { get; set; }
-        public ICollection<ImageDTO> Images { get; set; } = null!;
+        public ICollection<ReviewerDTO> Reviews { get; set; } = null!;
     }
 }

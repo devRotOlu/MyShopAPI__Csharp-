@@ -2,7 +2,7 @@
 {
     public class BankTransferResponse
     {
-        public string RequestSuccessful { get; set; } = null!;
+        public bool RequestSuccessful { get; set; } 
         public string ResponseMessage { get; set; } = null!;
         public ResponseBody responseBody { get; set; } = null!;
     }

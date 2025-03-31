@@ -2,6 +2,5 @@
 {
     public class ReviewerDTO : BaseUserDetailsDTO
     {
-        public string? ProfilePictureURI { get; set; } = null!;
     }
 }

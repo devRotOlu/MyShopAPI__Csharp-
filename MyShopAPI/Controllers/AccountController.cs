@@ -9,7 +9,6 @@ using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
 using MyShopAPI.Services.Image;
-using System.Security.Claims;
 
 namespace MyShopAPI.Controllers
 {
@@ -240,7 +239,7 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RefreshToken([FromQuery] string customerId)
-         {
+        {
             var oldToken = Request.Cookies["refreshToken"];
 
             if (string.IsNullOrEmpty(oldToken))
@@ -314,46 +313,156 @@ namespace MyShopAPI.Controllers
 
         [Authorize]
         [HttpPatch("modify-details")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> ModifyDetails([FromForm] DetailsDTO detailsDTO)
+        public async Task<IActionResult> ModifyDetails([FromBody] CustomerDetailsDTO detailsDTO)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var customer = _mapper.Map<CustomerDetails>(detailsDTO);
+            var mappedCustomerDetails = _mapper.Map<CustomerDetails>(detailsDTO);
 
-            if (detailsDTO.ProfilePicture != null)
+            var customer = await _authManager.GetUserByEmailAsync(User.Identity!.Name!);
+
+            if (detailsDTO.CurrentPassword is not null && detailsDTO.NewPassword is not null)
             {
-                var photo = await _photoService.AddPhotoAsync(detailsDTO.ProfilePicture);
-
-                if (photo.Error == null)
-                {
-                    customer.ProfilePictureUrI = photo.SecureUrl.AbsoluteUri;
-                    customer.ProfilePicturePublicId = photo.PublicId;
-                }
+                await _authManager.ChangePasswordAsync(customer!, detailsDTO.CurrentPassword, detailsDTO.NewPassword);
             }
 
-            var userName = User.FindFirstValue(ClaimTypes.Name);
+            var customerDetails = await _unitOfWork.CustomerDetails.Get(details => details.CustomerId == customer!.Id);
 
-            var result = await _unitOfWork.Customers.Get(customer => customer.Email == userName, include: customer => customer.Include(customer => customer.Details));
+            mappedCustomerDetails.CustomerId = customer!.Id;
+            mappedCustomerDetails.Id = customerDetails.Id;
 
-            customer.Id = result.Details.Id;
-            customer.CustomerId = result.Details.CustomerId;
-
-            _unitOfWork.CustomerDetails.Update(customer);
+            _unitOfWork.CustomerDetails.Update(mappedCustomerDetails);
             await _unitOfWork.Save();
 
+            var customerDTO = _mapper.Map<CustomerDTO>(customerDetails);
+            customerDTO.Email = customer.Email!;
 
-            string uri = $"{Request.Scheme}://{Request.Host}{Request.PathBase}{Request.Path}{Request.QueryString}";
+            return Ok(customerDTO);
+        }
 
-            var customerDTO = _mapper.Map<CustomerDTO>(customer);
-            customerDTO.Email = result.Email!;
+        [Authorize]
+        [HttpPost("add_delivery_profile")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AddDeliveryProfile([FromBody] AddDeliveryProfileDTO profileDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            return Created(uri, new { user = customerDTO });
+            var mappedProfile = _mapper.Map<DeliveryProfile>(profileDTO);
+
+            var email = User.Identity!.Name!;
+
+            var user = await _unitOfWork.Customers.Get((user) => user.Email == email);
+
+            mappedProfile.CustomerId = user.Id;
+
+            await _unitOfWork.DeliveryProfiles.Insert(mappedProfile);
+
+            await _unitOfWork.Save();
+
+            return Created("", profileDTO);
+        }
+
+        [Authorize]
+        [HttpGet("get_delivery_profile")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetDeliveryProfiles([FromQuery] string userId)
+        {
+
+            var user = await _authManager.GetUserByIdAsync(userId);
+
+            if (user is null)
+            {
+                return BadRequest();
+            }
+
+            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(profile => profile.CustomerId == userId);
+
+            var profileDTOs = _mapper.Map<IEnumerable<DeliveryProfileDTO>>(profiles);
+
+            return Ok(profileDTOs);
+        }
+
+        [Authorize]
+        [HttpPatch("modify_delivery_profile")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ModifyDeliveryProfile([FromBody] DeliveryProfileDTO profileDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var mappedProfile = _mapper.Map<DeliveryProfile>(profileDTO);
+
+            var user = await _unitOfWork.Customers.Get((user) => user.Email == User.Identity!.Name);
+
+            mappedProfile.CustomerId = user.Id;
+
+            _unitOfWork.DeliveryProfiles.Update(mappedProfile);
+
+            await _unitOfWork.Save();
+
+            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(profile => profile.CustomerId == user.Id);
+
+            var profileDTOs = _mapper.Map<IEnumerable<DeliveryProfileDTO>>(profiles);
+
+            return Ok(profileDTOs);
+        }
+
+        [Authorize]
+        [HttpDelete("delete_delivery_profile")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteDeliveryProfile([FromQuery] int profileId)
+        {
+            if (profileId < 0)
+                return BadRequest();
+
+            var user = await _authManager.GetUserByEmailAsync(User!.Identity!.Name!);
+
+            var profile = await _unitOfWork.DeliveryProfiles.Get((profile) => profile.Id == profileId && profile.CustomerId == user!.Id);
+
+            if (profile is null)
+                return BadRequest();
+
+            _unitOfWork.DeliveryProfiles.Delete(profile);
+
+            await _unitOfWork.Save();
+
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpDelete("delete_account")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteAccount()
+        {
+            var user = await _authManager.GetUserByEmailAsync(User.Identity!.Name!);
+
+            var result = await _authManager.DeleteAccount(user!);
+
+            if (!result.Succeeded)
+                return BadRequest();
+
+            return LocalRedirect("~/api/Account/logout");
         }
     }
 }

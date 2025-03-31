@@ -18,6 +18,7 @@ namespace MyShopAPI.Data
         public DbSet<ProductReview> ProductReviews { get; set; }
         public DbSet<CustomerDetails> CustomersDetails { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<DeliveryProfile> DeliveryProfiles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

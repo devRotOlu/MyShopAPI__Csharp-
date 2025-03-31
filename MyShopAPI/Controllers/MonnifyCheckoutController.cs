@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyShopAPI.Core.AuthManager;
 using MyShopAPI.Core.IRepository;
+using MyShopAPI.Helpers;
 using MyShopAPI.Services.Models.Monnify.ChargeCard;
 using MyShopAPI.Services.Monnify;
 using MyShopAPI.Services.RSA;
@@ -32,6 +33,8 @@ namespace MyShopAPI.Controllers
         [HttpGet("initialize")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status402PaymentRequired)]
         public async Task<IActionResult> InitializeTransaction(string customerEmail)
         {
 
@@ -46,14 +49,21 @@ namespace MyShopAPI.Controllers
 
             var items = await _unitOfWork.Carts.GetAll(item => item.CustomerId == user.Id && item.Quantity != 0, include: item => item.Include(item => item.Product));
 
-            var transactionReference = await _monnifyService.InitilaizeTransaction(items.ToList(), customerEmail);
+            var result = await _monnifyService.InitilaizeTransaction(items.ToList(), customerEmail);
 
-            return Ok(new { transactionReference });
+            if (!result.RequestSuccessful)
+            {
+                return StatusCode(500);
+            }
+
+            return Ok(new { transactionReference = result.ResponseBody.TransactionReference });
         }
 
         [HttpGet("bank_transfer")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status402PaymentRequired)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetBankTransferInfo([FromQuery] string bankCode, [FromQuery] string transactionReference)
         {
             if (string.IsNullOrEmpty(bankCode) || string.IsNullOrEmpty(transactionReference))
@@ -62,13 +72,22 @@ namespace MyShopAPI.Controllers
             }
 
             await _monnifyService.Authorization();
+
             var result = await _monnifyService.GetBankTransferInfo(bankCode, transactionReference);
+
+            if (!result.RequestSuccessful)
+            {
+                return StatusCode(402,new {message = result.ResponseMessage});
+            }
+
             return Ok(result);
         }
 
         [HttpPost("card_charge")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status402PaymentRequired)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CardPayment([FromBody] ChargeCardRequest chargeCard)
         {
             if (!ModelState.IsValid)
@@ -85,11 +104,20 @@ namespace MyShopAPI.Controllers
 
             var result = await _monnifyService.CardPayment(chargeCard);
 
+
+            if (!result.RequestSuccessful)
+            {
+                return StatusCode(402, new { message = result.ResponseMessage });
+            }
+
+            await _unitOfWork.ClearCart(User);
+
             return Ok();
         }
 
         [HttpGet("transaction_status")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status402PaymentRequired)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetTransactionStatus([FromQuery] string transactionRef)
         {
@@ -102,7 +130,23 @@ namespace MyShopAPI.Controllers
 
             var result = await _monnifyService.GetTransactionStatus(transactionRef);
 
-            return Ok(result);
+            var paidStatus = "PAID";
+            var overPaidStatus = "OVERPAID";
+
+            var status = result.ResponseBody.PaymentStatus;
+
+            if (status != paidStatus && status != overPaidStatus)
+            {
+                return StatusCode(402);
+            }
+            else if (!result.RequestSuccessful)
+            {
+                return StatusCode(500);
+            }
+
+            await _unitOfWork.ClearCart(User);
+
+            return Ok();
         }
     }
 }

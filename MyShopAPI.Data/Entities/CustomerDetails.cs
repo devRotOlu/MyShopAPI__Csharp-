@@ -1,24 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace MyShopAPI.Data.Entities
+﻿namespace MyShopAPI.Data.Entities
 {
-    public class CustomerDetails
+    public class CustomerDetails : BaseCustomer
     {
-        [Key]
-        public int Id { get; set; }
-        [Required]
-        public string FirstName { get; set; } = null!;
-        [Required]
-        public string LastName { get; set; } = null!;
-        [Required]
-        public string PhoneNumber {  get; set; } = null!;
-        public string? ShippingAddress { get; set; }
-        public string? BillingAddress { get; set; } = null!;
-        public string? ProfilePictureUrI { get; set; } = null!;
-        public string? ProfilePicturePublicId { get; set; } = null!;
-        [Required,ForeignKey("Customer")]
-        public string CustomerId { get; set; } = null!;
-        public Customer Customer { get; set; } = null!;
+        //[Required]
+        //public string PhoneNumber {  get; set; } = null!;
+        //public string? ShippingAddress { get; set; }
+        //public string? BillingAddress { get; set; } = null!;
+        //public string? ProfilePictureU rI { get; set; } = null!;
+        //public string? ProfilePicturePublicId { get; set; } = null!;
+        public string? StreetAddress { get; set; }
+        public string? City { get; set; }
+        public string? State { get; set; }
     }
 }

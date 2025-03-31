@@ -18,8 +18,7 @@ namespace MyShopAPI.Core.Configurations
             CreateMap<CustomerDetails, CustomerDTO>().ReverseMap();
             CreateMap<CustomerDetails, ReviewerDTO>().ReverseMap();
             CreateMap<SignUpDTO, CustomerDetails>();
-            CreateMap<CustomerDetails, DetailsDTO>().ReverseMap();
-            CreateMap<CustomerDetails, CustomerDTO>().ReverseMap();
+            CreateMap<CustomerDetails, CustomerDetailsDTO>().ReverseMap();
             CreateMap<Cart, GetCartDTO>()
                       .ForMember(getCartDTO => getCartDTO.CartQuantity, opt => opt.MapFrom(cart => cart.Quantity));
             CreateMap<Wishlist, AddWishlistDTO>().ReverseMap();
@@ -28,9 +27,12 @@ namespace MyShopAPI.Core.Configurations
             CreateMap<Wishlist, GetWishlistDTO>();
             CreateMap<Product, AddProductDTO>().ReverseMap();
             CreateMap<Product, GetProductDTO>().ReverseMap();
+            CreateMap<Product, BaseGetProductDTO>().ReverseMap();
             CreateMap<ProductImage, ImageDTO>().ReverseMap();
             CreateMap<ProductReview, AddReviewDTO>().ReverseMap();
             CreateMap<ProductReview, ReviewDTO>().ReverseMap();
+            CreateMap<DeliveryProfile,AddDeliveryProfileDTO>().ReverseMap();
+            CreateMap<DeliveryProfile, DeliveryProfileDTO>().ReverseMap();
         }
     }
 }
