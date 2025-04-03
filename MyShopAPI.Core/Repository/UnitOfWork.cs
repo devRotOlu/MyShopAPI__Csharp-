@@ -16,6 +16,7 @@ namespace MyShopAPI.Core.Repository
         public IGenericRepository<Cart> Carts { get; set; }
         public IGenericRepository<Wishlist> Wishlists { get; set; }
         public IGenericRepository<DeliveryProfile> DeliveryProfiles { get; set; }
+        public IGenericRepository<CustomerOrder> Orders { get; set; }
 
         public UnitOfWork(DatabaseContext databaseContext)
         {
@@ -28,6 +29,7 @@ namespace MyShopAPI.Core.Repository
             CustomerDetails = new GenericRepository<CustomerDetails>(databaseContext);
             RefreshTokens = new GenericRepository<RefreshToken>(databaseContext);
             DeliveryProfiles = new GenericRepository<DeliveryProfile>(databaseContext);
+            Orders = new GenericRepository<CustomerOrder>(databaseContext);
             _databaseContext = databaseContext;
         }
 

@@ -15,6 +15,7 @@ namespace MyShopAPI.Data.Entities
         [Required]
         public string LGA { get; set; } = null!;
         public string? Directions { get; set; }
-        public string? AdditionalInformation { get; set; } 
+        public string? AdditionalInformation { get; set; }
+        public ICollection<CustomerOrder> Orders { get; set; } = null!;
     }
 }

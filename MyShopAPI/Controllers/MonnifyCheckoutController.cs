@@ -88,7 +88,7 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status402PaymentRequired)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CardPayment([FromBody] ChargeCardRequest chargeCard)
+        public async Task<IActionResult> CardPayment([FromBody] ChargeCardRequest chargeCard, [FromQuery] int profileId)
         {
             if (!ModelState.IsValid)
             {
@@ -110,6 +110,8 @@ namespace MyShopAPI.Controllers
                 return StatusCode(402, new { message = result.ResponseMessage });
             }
 
+            await _unitOfWork.AddToOrder(User,profileId);
+
             await _unitOfWork.ClearCart(User);
 
             return Ok();
@@ -119,9 +121,9 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status402PaymentRequired)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTransactionStatus([FromQuery] string transactionRef)
+        public async Task<IActionResult> GetTransactionStatus([FromQuery] string transactionRef, [FromQuery] int profileId)
         {
-            if (string.IsNullOrEmpty(transactionRef))
+            if (string.IsNullOrEmpty(transactionRef) || profileId < 0)
             {
                 return BadRequest();
             }
@@ -143,6 +145,8 @@ namespace MyShopAPI.Controllers
             {
                 return StatusCode(500);
             }
+
+            await _unitOfWork.AddToOrder(User, profileId);
 
             await _unitOfWork.ClearCart(User);
 

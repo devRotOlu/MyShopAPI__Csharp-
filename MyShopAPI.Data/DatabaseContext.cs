@@ -19,11 +19,22 @@ namespace MyShopAPI.Data
         public DbSet<CustomerDetails> CustomersDetails { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<DeliveryProfile> DeliveryProfiles { get; set; }
+        public DbSet<CustomerOrder> Orders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
             builder.ApplyConfiguration(new RolesConfiguration());
+
+            builder.Entity<DeliveryProfile>()
+                .HasMany(entity => entity.Orders)
+                .WithOne(entity => entity.DeliveryProfile)
+                .OnDelete(DeleteBehavior.ClientNoAction);
+
+            builder.Entity<Customer>()
+                .HasMany(entity => entity.Orders)
+                .WithOne(entity => entity.Customer)
+                .OnDelete(DeleteBehavior.ClientNoAction);
         }
     }
 }

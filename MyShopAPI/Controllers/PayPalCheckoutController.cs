@@ -46,7 +46,7 @@ namespace MyShopAPI.Controllers
         [HttpPost("capture_order")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> CaptureOrder([FromBody] OrdersCaptureInput input)
+        public async Task<IActionResult> CaptureOrder([FromBody] OrdersCaptureInput input, [FromQuery] int profileId)
         {
             var result = await _payPalService.CaptureOrder(input);
 
@@ -54,6 +54,8 @@ namespace MyShopAPI.Controllers
             {
                 return BadRequest();
             }
+
+            await _unitOfWork.AddToOrder(User, profileId);
 
             await _unitOfWork.ClearCart(User);
 
