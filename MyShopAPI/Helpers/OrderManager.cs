@@ -22,8 +22,6 @@ namespace MyShopAPI.Helpers
 
             order.DeliveryProfileId = profileId;
 
-            order.OrderStatus = "Processing";
-
             await _unitOfWork.Orders.Insert(order);
 
             await _unitOfWork.Save();

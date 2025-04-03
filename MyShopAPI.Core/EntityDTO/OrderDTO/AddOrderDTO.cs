@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MyShopAPI.Core.EntityDTO
+namespace MyShopAPI.Core.EntityDTO.OrderDTO
 {
-    public class OrderDTO
+    public class AddOrderDTO
     {
         [Required]
         public string CustomerId { get; set; } = null!;

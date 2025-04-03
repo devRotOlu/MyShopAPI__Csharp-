@@ -17,7 +17,7 @@ namespace MyShopAPI.Data.Entities
         [Required, ForeignKey("DeliveryProfile")]
         public int DeliveryProfileId { get; set; }
         public DeliveryProfile DeliveryProfile { get; set; } = null!;
-        public string? OrderStatus { get; set; } 
+        public string? OrderStatus { get; set; } = "Processing";
         [Required,ForeignKey("Customer")]
         public string CustomerId { get; set; } = null!;
         public Customer Customer { get; set; } = null!;
