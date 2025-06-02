@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyShopAPI.Core.AuthManager;
-using MyShopAPI.Core.EntityDTO.UserDTO;
+using MyShopAPI.Core.DTOs.UserDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
@@ -21,18 +20,14 @@ namespace MyShopAPI.Controllers
         private readonly IConfiguration _configuration;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPhotoService _photoService;
-        private readonly IDataProtector _protector;
 
-
-
-        public AccountController(IMapper mapper, IAuthManager authManager, IConfiguration configuration, IUnitOfWork unitOfWork, IPhotoService photoService, IDataProtectionProvider provider)
+        public AccountController(IMapper mapper, IAuthManager authManager, IConfiguration configuration, IUnitOfWork unitOfWork, IPhotoService photoService)
         {
             _mapper = mapper;
             _authManager = authManager;
             _configuration = configuration;
             _unitOfWork = unitOfWork;
             _photoService = photoService;
-            _protector = provider.CreateProtector("MyPurpose");
         }
 
         [HttpPost("signup")]
@@ -159,7 +154,7 @@ namespace MyShopAPI.Controllers
 
             _authManager.SetTokenInCookies(new Tokens
             {
-                AccessToken = await _authManager.CreateToken(),
+                AccessToken = await _authManager.CreateToken(userDTO.Email),
                 RefreshToken = refreshToken,
             }, HttpContext);
 
@@ -194,6 +189,7 @@ namespace MyShopAPI.Controllers
         [HttpPost("password-reset-email")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> SendPasswordResetEmail([FromQuery] string email)
         {
@@ -206,10 +202,19 @@ namespace MyShopAPI.Controllers
 
             if (user == null)
             {
-                return BadRequest();
+                return Forbid() ;
             }
 
-            await _authManager.GenerateForgotPasswordTokenAsync(user, user.Details.FirstName, _configuration["PasswordConfirmation"]);
+            var clientType = Request.Headers["X-Client-Type"].FirstOrDefault()?.ToLower();
+
+            string? rootUrl = null;
+
+            if (clientType == "web")
+            {
+                rootUrl = $"{Request.Headers["X-Origin"].ToString()}{_configuration["password_reset_route"]}";
+            }
+
+            await _authManager.GenerateForgotPasswordTokenAsync(user, user.Details.FirstName,rootUrl);
 
             return NoContent();
         }
@@ -238,7 +243,7 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> RefreshToken([FromQuery] string customerId)
+        public async Task<IActionResult> RefreshToken()
         {
             var oldToken = Request.Cookies["refreshToken"];
 
@@ -247,7 +252,7 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var refreshTokenObj = await _unitOfWork.RefreshTokens.Get(token => token.Token == oldToken && token.CustomerId == customerId);
+            var refreshTokenObj = await _unitOfWork.RefreshTokens.Get(token => token.Token == oldToken,include:token=>token.Include(token=>token.Customer));
 
             if (refreshTokenObj == null || refreshTokenObj.ExpirationTime.CompareTo(DateTime.Now) < 0)
             {
@@ -258,7 +263,7 @@ namespace MyShopAPI.Controllers
 
             _authManager.SetTokenInCookies(new Tokens
             {
-                AccessToken = await _authManager.CreateToken(),
+                AccessToken = await _authManager.CreateToken(refreshTokenObj.Customer.Email!),
                 RefreshToken = refreshToken
             }, HttpContext);
 
@@ -388,7 +393,7 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(profile => profile.CustomerId == userId);
+            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(profile => profile.CustomerId == userId).ToListAsync();
 
             var profileDTOs = _mapper.Map<IEnumerable<DeliveryProfileDTO>>(profiles);
 
@@ -417,7 +422,7 @@ namespace MyShopAPI.Controllers
 
             await _unitOfWork.Save();
 
-            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(profile => profile.CustomerId == user.Id);
+            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(profile => profile.CustomerId == user.Id).ToListAsync();
 
             var profileDTOs = _mapper.Map<IEnumerable<DeliveryProfileDTO>>(profiles);
 

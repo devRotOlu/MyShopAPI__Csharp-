@@ -42,15 +42,8 @@ namespace MyShopAPI.Services.Monnify
             token = authResponse!.ResponseBody.AccessToken;
         }
 
-        public async Task<InitialTransactionResponse> InitilaizeTransaction(List<Cart> items, string cutomerEmail)
+        public async Task<InitialTransactionResponse> InitilaizeTransaction(string cutomerEmail,float amount)
         {
-            float amount = 0.00f;
-
-            foreach (var item in items)
-            {
-                amount += (float)(item.Quantity * item.Product.UnitPrice * 1500);
-            }
-
             var httpClient = InitializeHTTPClient();
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

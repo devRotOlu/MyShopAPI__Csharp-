@@ -1,6 +1,7 @@
 ﻿using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data;
 using MyShopAPI.Data.Entities;
+using OtherAttribute = MyShopAPI.Data.Entities.Attribute;
 
 namespace MyShopAPI.Core.Repository
 {
@@ -17,6 +18,9 @@ namespace MyShopAPI.Core.Repository
         public IGenericRepository<Wishlist> Wishlists { get; set; }
         public IGenericRepository<DeliveryProfile> DeliveryProfiles { get; set; }
         public IGenericRepository<CustomerOrder> Orders { get; set; }
+        public IGenericRepository<Category> Categories { get; set; }
+        public IGenericRepository<OtherAttribute> Attributes { get; set; }
+        public IGenericRepository<ProductAttribute> ProductAttributes { get; set; }
 
         public UnitOfWork(DatabaseContext databaseContext)
         {
@@ -30,6 +34,9 @@ namespace MyShopAPI.Core.Repository
             RefreshTokens = new GenericRepository<RefreshToken>(databaseContext);
             DeliveryProfiles = new GenericRepository<DeliveryProfile>(databaseContext);
             Orders = new GenericRepository<CustomerOrder>(databaseContext);
+            Categories = new GenericRepository<Category>(databaseContext);
+            Attributes = new GenericRepository<OtherAttribute>(databaseContext);
+            ProductAttributes = new GenericRepository<ProductAttribute>(databaseContext);
             _databaseContext = databaseContext;
         }
 

@@ -1,6 +1,4 @@
-﻿using MyShopAPI.Services.RSA;
-using Org.BouncyCastle.Crypto.IO;
-using System.IO;
+﻿using MyShopAPI.Helpers;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -9,141 +7,65 @@ namespace MyShopAPI.CustomMiddlewares
     public class CardDecryptionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IConfiguration _configuration;
-        private readonly IRSAService _raService;
-
-        public CardDecryptionMiddleware(RequestDelegate next, IConfiguration configuration, IRSAService rSAService)
+        public CardDecryptionMiddleware(RequestDelegate next)
         {
             _next = next;
-            _configuration = configuration;
-            _raService = rSAService;
-        }
+        }   
 
         public async Task Invoke(HttpContext context)
         {
             if (context.Request.Path == "/api/MonnifyCheckout/card_charge")
             {
+                var rsa = RSAManager.CreateRsaFromPrivateKey();
 
-                //var cipherStream = context.Request.Body;
-
-                //try
-                //{
-                //    var length = context.Request.ContentLength;
-                //    using (var aes = Aes.Create())
-                //    {
-                //        aes.Key = Convert.FromBase64String(_configuration["card_decripytor:key"]!);
-                //        aes.IV = Convert.FromBase64String(_configuration["card_decripytor:iv"]!);
-
-                //        aes.Mode = CipherMode.CBC;
-                //        aes.BlockSize = 128;
-                //        aes.Padding = PaddingMode.PKCS7;
-                //        aes.KeySize = 128;
-
-                //        FromBase64Transform base64Transform = new FromBase64Transform(FromBase64TransformMode.IgnoreWhiteSpaces);
-                //        CryptoStream base64DecodedStream = new CryptoStream(cipherStream, base64Transform, CryptoStreamMode.Read);
-                //        ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-                //        CryptoStream decryptedStream = new CryptoStream(base64DecodedStream, decryptor, CryptoStreamMode.Read);
-                //        context.Request.Body = decryptedStream;
-                //        await _next.Invoke(context);
-                //    }
-                //}
-                //catch (Exception)
-                //{
+                var encryptedKeyBase64 = context.Request.Headers["X-Encrypted-Key"];
+                var encryptedIVBase64 = context.Request.Headers["X-Encrypted-IV"];
 
 
-                //}
-                //try
-                //{
-                //    //byte[] cipherBytes = new byte[Convert.ToInt32(context.Request.ContentLength)];
-
-                //    var data = context.Request.Body.ToString(); //.ReadAsync(cipherBytes, 0, cipherBytes.Length);
-
-                //    var reader = new StreamReader(context.Request.Body);
-
-                //    var plainText = await reader.ReadToEndAsync();
-
-
-                //    //byte[] bytes = Encoding.UTF8.GetBytes(data);
-
-                //    //string encoded = Convert.ToBase64String(bytes);
-
-                //    //var base64String = Convert.ToBase64String(data);
-
-                //    var cipherBytes = Convert.FromBase64String(plainText);
-
-                //    var decrytedData = _raService.Decrypt(cipherBytes);
-
-                //    var content = new StringContent(decrytedData, Encoding.UTF8, "application/json");
-
-                //    var stream = content.ReadAsStream();
-
-                //    context.Request.Body = stream;
-
-                //}
-                //catch (Exception)
-                //{
-
-                //}
-
-                try
+                if (string.IsNullOrWhiteSpace(encryptedKeyBase64) || string.IsNullOrWhiteSpace(encryptedIVBase64))
                 {
-                    //var length = 16 * (int)Math.Ceiling(((decimal)context.Request.ContentLength!)/16);
-                    byte[] cipherBytes = new byte[Convert.ToInt32(context.Request.ContentLength)];
-
-                    await context.Request.Body.ReadAsync(cipherBytes, 0, cipherBytes.Length);
-
-                    var plainText = String.Empty;
-
-                    using (var aes = Aes.Create())
-                    {
-                        aes.Key = Convert.FromHexString(_configuration["card_decripytor:key"]!.PadRight(32)!);
-
-                        aes.Mode = CipherMode.CBC;
-                        aes.BlockSize = 128;
-                        aes.Padding = PaddingMode.PKCS7;
-                        aes.KeySize = 128;
-
-
-                        aes.IV = Convert.FromHexString(_configuration["card_decripytor:iv"]!);
-
-                        using (ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
-                        {
-                            using (MemoryStream msDecrpyt = new MemoryStream(cipherBytes))
-                            {
-                                using (CryptoStream csDecrpt = new CryptoStream(msDecrpyt, decryptor, CryptoStreamMode.Read))
-                                {
-                                    using (StreamReader srDecrypt = new StreamReader(csDecrpt))
-                                    {
-                                        plainText = srDecrypt.ReadToEnd();
-                                    }
-                                }
-
-                            }
-                        }
-
-                    }
-
-                    var content = new StringContent(plainText, Encoding.UTF8, "application/json");
-
-                    var stream = content.ReadAsStream();
-
-                    context.Request.Body = stream;
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsync("Missing encryption headers.");
+                    return;
                 }
-                catch (Exception ex)
+
+                if (!string.IsNullOrEmpty(encryptedKeyBase64) && !string.IsNullOrEmpty(encryptedIVBase64))
                 {
+                        var aesKey = rsa.Decrypt(Convert.FromBase64String(encryptedKeyBase64!), RSAEncryptionPadding.OaepSHA256);
+                        var aesIV = rsa.Decrypt(Convert.FromBase64String(encryptedIVBase64!), RSAEncryptionPadding.OaepSHA256);
+
+                        context.Request.EnableBuffering();
+                        using var reader = new StreamReader(context.Request.Body);
+                        var encryptedBody = await reader.ReadToEndAsync();
+                        context.Request.Body.Position = 0;
+
+                        var encryptedBytes = Convert.FromBase64String(encryptedBody);
+
+                        var tagSize = 16;
+                        int cipherLength = encryptedBytes.Length - tagSize;
+
+                        byte[] ciphertext = encryptedBytes[..cipherLength];
+                        byte[] tag = encryptedBytes[^tagSize..];
+
+                        byte[] plaintextBytes = new byte[cipherLength];
+
+                        using var aesGcm = new AesGcm(aesKey, tagSize);
+                        aesGcm.Decrypt(aesIV, ciphertext, tag, plaintextBytes);
+
+                        string json = Encoding.UTF8.GetString(plaintextBytes);
+
+                        var newBody = new MemoryStream(Encoding.UTF8.GetBytes(json));
+                        context.Request.Body = newBody;
+                        context.Request.ContentLength = newBody.Length;
+                        context.Request.Body.Position = 0;
+                        context.Request.ContentType = "application/json";
 
                 }
+
             }
 
-            try
-            {
-                await _next.Invoke(context);
-            }
-            catch (Exception)
-            {
+            await _next(context);
 
-                
-            }
         }
 
     }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using MyShopAPI.Core.EntityDTO.UserDTO;
+using MyShopAPI.Core.DTOs.UserDTOs;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
 using System.Security.Claims;
@@ -10,9 +10,8 @@ namespace MyShopAPI.Core.AuthManager
 {
     public interface IAuthManager
     {
-        Customer User { get; }
         Task<SignInResult> SignInUser(LoginDTO userDTO);
-        Task<string> CreateToken();
+        Task<string> CreateToken(string email);
         Task<Customer?> GetUserByEmailAsync(string email);
         Task GenerateEmailConfirmationTokenAsync(Customer user, string memberFirstName, string? emailConfirmationLink = null);
         Task GenerateForgotPasswordTokenAsync(Customer user, string memberFirstName, string? passwordResetLink = null);
@@ -24,7 +23,7 @@ namespace MyShopAPI.Core.AuthManager
         Task<IdentityResult> ConfirmEmailAsync(string uid, string token);
         Task<Customer?> GetUserByIdAsync(string id);
         string GenerateRefreshToken();
-        void SetTokenInCookies(Tokens tokens,HttpContext context);
+        void SetTokenInCookies(Tokens tokens, HttpContext context);
         Task<TokenValidationResult> ValidateToken(string accessToken);
         Task<IdentityResult> DeleteAccount(Customer user);
     }

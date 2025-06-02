@@ -76,12 +76,21 @@ namespace MyShopAPI.Services.Email
                 emailMessage.To.Add(new MailboxAddress("", toEmail));
             }
 
-            using (var smtp = new SmtpClient())
+            try
             {
-                await smtp.ConnectAsync(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, _smtpConfig.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
-                await smtp.AuthenticateAsync(_smtpConfig.SenderEmail, _smtpConfig.Password);
-                await smtp.SendAsync(emailMessage);
-                await smtp.DisconnectAsync(true);
+                using (var smtp = new SmtpClient())
+                {
+                    //await smtp.ConnectAsync(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, _smtpConfig.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
+                    await smtp.ConnectAsync(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, SecureSocketOptions.SslOnConnect);
+                    await smtp.AuthenticateAsync(_smtpConfig.SenderEmail, _smtpConfig.Password);
+                    await smtp.SendAsync(emailMessage);
+                    await smtp.DisconnectAsync(true);
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
             } 
         }
     }

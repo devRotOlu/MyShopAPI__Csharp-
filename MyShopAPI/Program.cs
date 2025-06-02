@@ -12,8 +12,7 @@ using MyShopAPI.Services.Email;
 using MyShopAPI.Services.Image;
 using MyShopAPI.Services.Models;
 using MyShopAPI.Services.Monnify;
-using MyShopAPI.Services.PayPal;
-using MyShopAPI.Services.RSA;
+using MyShopAPI.Services.PayStack;
 using Newtonsoft.Json.Converters;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,9 +43,8 @@ builder.Services.AddScoped<IAuthManager, AuthManager>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.Configure<SMTPConfig>(builder.Configuration.GetSection("SMTPConfig"));
-builder.Services.AddScoped<IPayPalService, PayPalService>();
 builder.Services.AddScoped<IMonnifyService, MonnifyService>();
-builder.Services.AddTransient<IRSAService, RSAService>();
+builder.Services.AddScoped<IPayStackService, PayStackService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
 builder.Services.AddAutoMapper(typeof(MapperInitializer));
@@ -57,12 +55,18 @@ builder.Services.AddCors(corsOptions =>
 {
     corsOptions.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins("http://localhost:3000")
+        builder.WithOrigins("http://localhost:3000", "https://a9d8-2c0f-f5c0-b2a-11fb-ccbc-18b8-1cde-cea6.ngrok-free.app")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
+        //.WithExposedHeaders("X-Origin");
     });
 });
+
+// Optional: Customize logging level and provider
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole(); // Ensure Console logger is added
+builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 //builder.Services.AddIdentityApiEndpoints<Customer>();
 
@@ -74,12 +78,13 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
 app.UseMiddleware<ExceptionMiddleware>();
-//app.UseMiddleware<CardDecryptionMiddleware>();
+app.UseMiddleware<CardDecryptionMiddleware>();
 app.UseMiddleware<ProductVerificationMiddleware>();
 app.UseMiddleware<CartProductVerificationMiddleware>();
 app.UseRouting();

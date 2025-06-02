@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyShopAPI.Core.EntityDTO.WishlistDTO;
+using MyShopAPI.Core.DTOs.WishlistDTOs;
+using MyShopAPI.Core.EntityDTO.WishlistDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
 
@@ -50,7 +51,8 @@ namespace MyShopAPI.Controllers
             }
 
             var results = await _unitOfWork.Wishlists.GetAll(item => item.CustomerId == customer.Id, include: item => item.Include(item => item.Product)
-                                            .ThenInclude(product => product.Images));
+                                            .ThenInclude(product => product.Images))
+                                            .ToListAsync();
 
             var cartItems = _mapper.Map<IEnumerable<GetWishlistDTO>>(results);
 
@@ -64,7 +66,7 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var item = await _unitOfWork.Wishlists.Get(item=>item.CustomerId == wishlistDTO.CustomerId && item.ProductId == wishlistDTO.ProductId);
+            var item = await _unitOfWork.Wishlists.Get(item => item.CustomerId == wishlistDTO.CustomerId && item.ProductId == wishlistDTO.ProductId);
 
             if (item == null) return BadRequest();
 

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyShopAPI.Core.EntityDTO.CartDTO;
+using MyShopAPI.Core.DTOs.CartDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
 
@@ -71,7 +71,7 @@ namespace MyShopAPI.Controllers
             }
 
             var results = await _unitOfWork.Carts.GetAll(item => item.CustomerId == customer.Id && item.Quantity != 0, include: item => item.Include(item => item.Product)
-                    .ThenInclude(product => product.Images));
+                    .ThenInclude(product => product.Images)).ToListAsync();
 
             var cartItems = _mapper.Map<IEnumerable<GetCartDTO>>(results);
 
@@ -121,7 +121,7 @@ namespace MyShopAPI.Controllers
         {
             if (id <= 0) return BadRequest();
 
-            var cartItem = await _unitOfWork.Carts.Get(item=> item.Id == id);
+            var cartItem = await _unitOfWork.Carts.Get(item => item.Id == id);
 
             if (cartItem == null)
             {

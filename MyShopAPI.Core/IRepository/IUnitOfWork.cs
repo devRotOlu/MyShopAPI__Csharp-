@@ -1,4 +1,5 @@
 ﻿using MyShopAPI.Data.Entities;
+using OtherAttribute = MyShopAPI.Data.Entities.Attribute;
 
 namespace MyShopAPI.Core.IRepository
 {
@@ -14,6 +15,10 @@ namespace MyShopAPI.Core.IRepository
         IGenericRepository<RefreshToken> RefreshTokens { get; set; }
         IGenericRepository<DeliveryProfile> DeliveryProfiles { get; set; }
         IGenericRepository<CustomerOrder> Orders { get; set; }
+        IGenericRepository<Category> Categories { get; set; }
+        IGenericRepository<OtherAttribute> Attributes {get;set;}
+        IGenericRepository<ProductAttribute> ProductAttributes { get; set; }
+
         Task Save();
     }
 }

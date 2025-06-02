@@ -2,11 +2,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyShopAPI.Core.EntityDTO.ProductReviewDTO;
-using MyShopAPI.Core.EntityDTO.ProoductDTO;
+using MyShopAPI.Core.DTOs.CategoryDTOs;
+using MyShopAPI.Core.DTOs.ProductAttributeDTOs;
+using MyShopAPI.Core.DTOs.ProductDTOs;
+using MyShopAPI.Core.DTOs.ProductReviewDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
 using MyShopAPI.Services.Image;
+using Newtonsoft.Json;
 
 namespace MyShopAPI.Controllers
 {
@@ -26,6 +29,7 @@ namespace MyShopAPI.Controllers
             _unitOfWork = unitOfWork;
         }
 
+        [AllowAnonymous]
         [HttpPost("add-product")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -37,6 +41,15 @@ namespace MyShopAPI.Controllers
             }
 
             var product = _mapper.Map<Product>(productDTO);
+
+            if (productDTO.AttributesJson != null)
+            {
+                var attributes = JsonConvert.DeserializeObject<IEnumerable<ProductAttributeDTO>>(productDTO.AttributesJson);
+
+                var _product = _mapper.Map<Product>(attributes);
+
+                product.Attributes = _product.Attributes;
+            }
 
             product.Images = new List<ProductImage>();
 
@@ -68,19 +81,33 @@ namespace MyShopAPI.Controllers
         public async Task<IActionResult> GetProducts()
         {
             var results = await _unitOfWork.Products.GetAll(product => product.Quantity != 0, include: product => product.Include(product => product.Images)
-                .Include(product=>product.Reviews)
-                .ThenInclude(review=>review.Reviewer));
-
-            if (results == null)
-            {
-                return BadRequest();
-            }
+             .Include(product => product.Reviews)).ToListAsync();
 
             var products = _mapper.Map<IEnumerable<GetProductDTO>>(results);
 
             return Ok(products);
         }
 
+
+        [AllowAnonymous]
+        [HttpGet("get-product")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetProduct([FromQuery] int productId)
+        {
+            var result = await _unitOfWork.Products.Get(product => product.Quantity != 0 && product.Id == productId, include: product => product.Include(product => product.Images)
+                 .Include(product=>product.Category)
+                 .Include(product => product.Reviews)
+                    .ThenInclude(review => review.Reviewer)
+                    .ThenInclude(reviewer => reviewer.Details)
+                 .Include(product => product.Attributes)
+                    .ThenInclude(attribute => attribute.Attribute));
+
+            var product = _mapper.Map<GetProductDTO>(result);
+
+            return Ok(product);
+        }
 
         [HttpPatch("update-product")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -100,6 +127,89 @@ namespace MyShopAPI.Controllers
             await _unitOfWork.Save();
 
             return NoContent();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("brand_products")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetBrandProducts([FromQuery] string brand,[FromQuery] int? min = 0, [FromQuery] int? max = int.MaxValue, [FromQuery] int? rating = 0) 
+        {
+            if (String.IsNullOrEmpty(brand))
+            {
+                return BadRequest();
+            }
+
+            var results = await _unitOfWork.Products.GetAll(product => product.Attributes != null && product.Attributes.Any(attribute => attribute.Value == brand) && min <= product.UnitPrice 
+              && product.UnitPrice <= max && product.AverageRating >= rating, include: product => product.Include(product => product.Images)
+                 .Include(product => product.Reviews)
+                    .ThenInclude(review=>review.Reviewer)
+                 .Include(product=>product.Category)).ToListAsync();
+                
+            var products = _mapper.Map<IEnumerable<GetProductDTO>>(results);
+
+            return Ok(products);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("category_products")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetCategoryProducts([FromQuery] int categoryId, [FromQuery] int? min = 0, [FromQuery] int? max = int.MaxValue, [FromQuery] int? rating = 0)
+        {
+            if (categoryId <= 0)
+            {
+                return BadRequest();
+            }
+
+            var results = await _unitOfWork.Products.GetAll(product => product.CategoryId == categoryId && min <= product.UnitPrice && product.UnitPrice <= max && product.AverageRating >= rating, include: product => product.Include(product => product.Images)
+                 .Include(product => product.Reviews)
+                    .ThenInclude(review => review.Reviewer)
+                    .ThenInclude(reviewer => reviewer.Details)
+                 .Include(product=>product.Category)).ToListAsync();
+
+            var result = await _unitOfWork.Categories.Get(category => category.Id == categoryId);
+
+            var products = _mapper.Map<IEnumerable<GetProductDTO>>(results);
+
+            return Ok(products);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("product_search")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> SearchProductByNameCategoryorBrand([FromQuery] string searchTerm)
+        {
+            if (String.IsNullOrEmpty(searchTerm))
+            {
+                return BadRequest();
+            }
+
+            var products = await _unitOfWork.Products.GetAll(include: product => product.Include(product => product.Images)
+                .Where(product => EF.Functions.Like(product.Name, $"%{searchTerm}%"))
+                 .Include(product => product.Category)
+                 .Include(product => product.Reviews)
+                    .ThenInclude(review => review.Reviewer)
+                    .ThenInclude(reviewer => reviewer.Details)
+                  .Include(product => product.Attributes)
+                    .ThenInclude(attribute => attribute.Attribute)).ToListAsync();
+
+            var categories = await _unitOfWork.Categories.GetAll(category=> EF.Functions.Like(category.Name, $"%{searchTerm}%")).ToListAsync();
+
+            var brands = await _unitOfWork.ProductAttributes.GetAll(attribute=> attribute.Attribute.Name == "brand" &&
+                EF.Functions.Like(attribute.Value, $"%{searchTerm}%"), include: attribute => attribute.Include(attribute => attribute.Attribute))
+                    .Select(attribute=>attribute.Value)
+                    .Distinct()
+                    .ToListAsync();
+
+            var _products = _mapper.Map<IEnumerable<GetProductDTO>>(products);
+            var _categories = _mapper.Map<IEnumerable<GetCategoryDTO>>(categories);
+
+            return Ok(new { products=_products, categories=_categories,brands});
         }
 
         [HttpPost("add-review")]
@@ -129,7 +239,7 @@ namespace MyShopAPI.Controllers
         {
             if (productId <= 0) return BadRequest();
 
-            var result = await _unitOfWork.ProductReviews.GetAll(review => review.ProductId == productId,include:review=>review.Include(review=>review.Reviewer));
+            var result = await _unitOfWork.ProductReviews.GetAll(review => review.ProductId == productId, include: review => review.Include(review => review.Reviewer)).ToListAsync();
 
             var reviews = _mapper.Map<IEnumerable<ReviewDTO>>(result);
 

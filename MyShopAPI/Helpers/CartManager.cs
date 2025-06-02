@@ -1,37 +1,23 @@
-﻿using MyShopAPI.Core.IRepository;
-using MyShopAPI.Data.Entities;
-using System.Security.Claims;
+﻿using Microsoft.EntityFrameworkCore;
+using MyShopAPI.Core.IRepository;
 
 namespace MyShopAPI.Helpers
 {
     public static class CartManager
     {
-        public async static Task ClearCart(this IUnitOfWork _unitOfWork, ClaimsPrincipal user)
+        public async static Task<decimal> ComputeCartTotal(this IUnitOfWork _unitOfWork,string userId)
         {
-            var email = user.FindFirstValue(ClaimTypes.Name);
+            var cartItems = await _unitOfWork.Carts.GetAll(cart=> cart.CustomerId == userId)
+                                            .ToListAsync();
 
-            var customer = await _unitOfWork.Customers.Get(user => user.Email == email);
-
-            var cartItems = await _unitOfWork.Carts.GetAll(cart => cart.CustomerId == customer.Id && cart.Quantity != 0);
-
-            var updatedItems = new List<Cart>();
+            decimal totalCost = 0;
 
             foreach (var item in cartItems)
             {
-                var cart = new Cart
-                {
-                    Id = item.Id,
-                    CustomerId = customer.Id,
-                    ProductId = item.ProductId,
-                    Quantity = 0,
-                    IsPurchased = 1
-                };
-                updatedItems.Add(cart);
+                totalCost += item.TotalCost;
             }
 
-            _unitOfWork.Carts.UpdateRange(updatedItems);
-
-            await _unitOfWork.Save();
+            return Math.Round(totalCost,2);
         }
     }
 }

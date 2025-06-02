@@ -17,5 +17,6 @@ namespace MyShopAPI.Data.Entities
         public string Review { get; set; } = null!;
         [Required, Column(TypeName = "decimal(3,2)")]
         public decimal Rating { get; set; }
+        public DateOnly ReviewDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
     }
 }

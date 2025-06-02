@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MyShopAPI.Core.AuthManager;
+using MyShopAPI.Core.DTOs.MonnifyDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Helpers;
-using MyShopAPI.Services.Models.Monnify.ChargeCard;
 using MyShopAPI.Services.Monnify;
-using MyShopAPI.Services.RSA;
 
 namespace MyShopAPI.Controllers
 {
@@ -18,16 +16,12 @@ namespace MyShopAPI.Controllers
         private readonly IMonnifyService _monnifyService;
         private readonly IAuthManager _authManager;
         private readonly IUnitOfWork _unitOfWork;
-        //private readonly IDataProtector _protector;
-        private readonly IRSAService _raService;
 
-        public MonnifyCheckoutController(IMonnifyService monnifyService, IAuthManager authManager, IUnitOfWork unitOfWork, IRSAService rSAService)
+        public MonnifyCheckoutController(IMonnifyService monnifyService, IAuthManager authManager, IUnitOfWork unitOfWork)
         {
             _monnifyService = monnifyService;
             _authManager = authManager;
             _unitOfWork = unitOfWork;
-            _raService = rSAService;
-            //_protector = provider.CreateProtector("MyPurpose");
         }
 
         [HttpGet("initialize")]
@@ -47,9 +41,9 @@ namespace MyShopAPI.Controllers
 
             await _monnifyService.Authorization();
 
-            var items = await _unitOfWork.Carts.GetAll(item => item.CustomerId == user.Id && item.Quantity != 0, include: item => item.Include(item => item.Product));
+            var totalCost = await _unitOfWork.ComputeCartTotal(user.Id);
 
-            var result = await _monnifyService.InitilaizeTransaction(items.ToList(), customerEmail);
+            var result = await _monnifyService.InitilaizeTransaction(customerEmail, (float)totalCost);
 
             if (!result.RequestSuccessful)
             {
@@ -77,7 +71,7 @@ namespace MyShopAPI.Controllers
 
             if (!result.RequestSuccessful)
             {
-                return StatusCode(402,new {message = result.ResponseMessage});
+                return StatusCode(402, new { message = result.ResponseMessage });
             }
 
             return Ok(result);
@@ -88,21 +82,16 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status402PaymentRequired)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CardPayment([FromBody] ChargeCardRequest chargeCard, [FromQuery] int profileId)
+        public async Task<IActionResult> CardPayment([FromBody] CardPaymentDTO cardDTO)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            //FromBase64Transform fromBase64Transform = new FromBase64Transform();
-            //var cipherByte = Convert.FromBase64String(body);
-
-            //var decrypted = _raService.Decrypt(cipherByte);
-
             await _monnifyService.Authorization();
 
-            var result = await _monnifyService.CardPayment(chargeCard);
+            var result = await _monnifyService.CardPayment(cardDTO.CardDetails);
 
 
             if (!result.RequestSuccessful)
@@ -110,27 +99,25 @@ namespace MyShopAPI.Controllers
                 return StatusCode(402, new { message = result.ResponseMessage });
             }
 
-            await _unitOfWork.AddToOrder(User,profileId);
+            var orderId = await _unitOfWork.AddToOrderAndClearCart(User, cardDTO.profileId, cardDTO.OrderInstruction);
 
-            await _unitOfWork.ClearCart(User);
-
-            return Ok();
+            return Ok(new { orderId });
         }
 
-        [HttpGet("transaction_status")]
+        [HttpPost("transaction_status")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status402PaymentRequired)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTransactionStatus([FromQuery] string transactionRef, [FromQuery] int profileId)
+        public async Task<IActionResult> GetTransactionStatus(TransactionStatusDTO statusDTO)
         {
-            if (string.IsNullOrEmpty(transactionRef) || profileId < 0)
+            if (!ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
 
             await _monnifyService.Authorization();
 
-            var result = await _monnifyService.GetTransactionStatus(transactionRef);
+            var result = await _monnifyService.GetTransactionStatus(statusDTO.TransactionReference);
 
             var paidStatus = "PAID";
             var overPaidStatus = "OVERPAID";
@@ -146,11 +133,9 @@ namespace MyShopAPI.Controllers
                 return StatusCode(500);
             }
 
-            await _unitOfWork.AddToOrder(User, profileId);
+            var orderId = await _unitOfWork.AddToOrderAndClearCart(User, statusDTO.ProfileId, statusDTO.OrderInstruction);
 
-            await _unitOfWork.ClearCart(User);
-
-            return Ok();
+            return Ok(new { orderId });
         }
     }
 }

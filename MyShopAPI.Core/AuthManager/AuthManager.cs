@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using MyShopAPI.Core.DTOs.UserDTOs;
 using MyShopAPI.Core.EmailMananger;
-using MyShopAPI.Core.EntityDTO.UserDTO;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
 using System.Security.Claims;
@@ -16,14 +16,12 @@ namespace MyShopAPI.Core.AuthManager
 {
     public class AuthManager : IAuthManager
     {
-        
+
         private readonly UserManager<Customer> _userManager;
         private readonly IConfiguration _configuration;
-        private static Customer _user;
         private readonly SignInManager<Customer> _signInManager;
         private readonly IEmailManager _emailManager;
 
-        public Customer User => _user;
 
         public AuthManager(UserManager<Customer> userManager, IConfiguration configuration, IEmailManager emailManager, SignInManager<Customer> signInManager)
         {
@@ -35,7 +33,7 @@ namespace MyShopAPI.Core.AuthManager
 
         public async Task<IdentityResult> AddToRolesAsync(Customer appUser, IEnumerable<string> roles)
         {
-            
+
             return await _userManager.AddToRolesAsync(appUser, roles);
         }
 
@@ -51,28 +49,20 @@ namespace MyShopAPI.Core.AuthManager
             return await _userManager.CreateAsync(appUser, password);
         }
 
-        public async Task<string> CreateToken()
+        public async Task<string> CreateToken(string email)
         {
             var signingCredentials = GetSigningCredentials();
 
-            var claims = await GetClaims();
+            var claims = await GetClaims(email);
 
             var tokenDescriptor = GenerateTokenOptions(signingCredentials, claims);
 
             return new JsonWebTokenHandler().CreateToken(tokenDescriptor);
         }
 
-        public async Task<IdentityResult> ChangePasswordAsync(Customer user,string currentPassword,string newPassword)
+        public async Task<IdentityResult> ChangePasswordAsync(Customer user, string currentPassword, string newPassword)
         {
-            try
-            {
-                return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
+            return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
         }
 
 
@@ -119,7 +109,6 @@ namespace MyShopAPI.Core.AuthManager
 
         public async Task<SignInResult> SignInUser(LoginDTO userDTO)
         {
-            AuthManager._user = await _userManager.FindByEmailAsync(userDTO.Email);
 
             return await _signInManager.PasswordSignInAsync(userDTO.Email, userDTO.Password, false, false);
         }
@@ -133,13 +122,14 @@ namespace MyShopAPI.Core.AuthManager
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
         }
 
-        private async Task<IDictionary<string, object>> GetClaims()
+        private async Task<IDictionary<string, object>> GetClaims(string email)
         {
+            var user  = await _userManager.FindByEmailAsync(email);
             var claims = new Dictionary<string, object>();
-            claims.Add(ClaimTypes.Name, User.UserName!);
+            claims.Add(ClaimTypes.Name, user!.UserName!);
             claims.Add(JwtRegNamesCalims.Aud, _configuration["Jwt:Issuer"]!);
 
-            var roles = await _userManager.GetRolesAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
 
             foreach (var role in roles)
             {
@@ -197,7 +187,7 @@ namespace MyShopAPI.Core.AuthManager
                 HttpOnly = true,
                 IsEssential = true,
                 Secure = true,
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.None,
                 Expires = accesstokenExpirationTime
             });
 

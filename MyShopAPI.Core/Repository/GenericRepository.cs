@@ -50,7 +50,7 @@ namespace MyShopAPI.Core.Repository
         }
 
 
-        public async Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>>? expression = null, Func<IQueryable<T>, IIncludableQueryable<T, Object>>? include = null)
+        public IQueryable<T> GetAll(Expression<Func<T, bool>>? expression = null, Func<IQueryable<T>, IIncludableQueryable<T, Object>>? include = null)
         {
             IQueryable<T> query = _db;
 
@@ -64,7 +64,7 @@ namespace MyShopAPI.Core.Repository
                 query = include!(query);
             }
 
-            return await query.AsNoTracking().ToListAsync();
+            return query.AsNoTracking();
         }
 
         public IEnumerable<T> GetAll(RequestParams requestParams, Expression<Func<T, bool>>? expression = null, List<string>? includes = null)

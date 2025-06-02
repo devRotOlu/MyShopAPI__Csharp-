@@ -14,11 +14,15 @@ namespace MyShopAPI.Data.Entities
         public decimal UnitPrice {  get; set; } 
         [Required]
         public uint Quantity { get; set; }
+        [Required,ForeignKey("Category")]
+        public int CategoryId { get; set; }
+        public Category Category { get; set; } = null!;
         [Required]
         public ICollection<ProductImage> Images { get; set; } = null!;
         [Required]
         public ICollection<ProductReview> Reviews { get; set; } = null!;
         [Column(TypeName = "decimal(3,2)")]
         public decimal AverageRating { get; set; }
+        public IEnumerable<ProductAttribute>? Attributes { get; set; } 
     }
 }

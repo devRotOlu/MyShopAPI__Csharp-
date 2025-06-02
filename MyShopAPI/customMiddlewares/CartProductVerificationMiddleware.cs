@@ -1,5 +1,5 @@
-﻿using MyShopAPI.Core.EntityDTO.CartDTO;
-using MyShopAPI.Core.EntityDTO.ProductReviewDTO;
+﻿using MyShopAPI.Core.DTOs.CartDTOs;
+using MyShopAPI.Core.DTOs.ProductReviewDTOs;
 using MyShopAPI.Data.Entities;
 using Newtonsoft.Json;
 using System.Linq.Expressions;
@@ -63,7 +63,7 @@ namespace MyShopAPI.CustomMiddlewares
 
                     var cartItem = await _unitOfWork.Carts.Get(cart => cart.CustomerId == (string)_customerId && cart.ProductId == (int)_productId);
 
-                    if (cartItem.Quantity == 0)
+                    if (cartItem?.Quantity == 0)
                     {
 
                         var data = JsonConvert.DeserializeObject<AddCartDTO>(dataString);
@@ -91,11 +91,11 @@ namespace MyShopAPI.CustomMiddlewares
                         context.Request.ContentLength = context.Request.Body.Length;
 
                     }
-                    else if (cartItem.Quantity > 0)
+                    else if (cartItem?.Quantity > 0)
                     {
                         Func<bool, bool> _verifyItem = isTrue => isTrue == true;
 
-                        VerifyItem(_verifyItem, true); 
+                        VerifyItem(_verifyItem, true);
                     }
                 }
             }
