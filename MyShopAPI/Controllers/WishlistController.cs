@@ -30,9 +30,23 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cartItem = _mapper.Map<Wishlist>(item);
+            var result = await _unitOfWork.Wishlists.Get(listItem => listItem.ProductId == item.ProductId && listItem.CustomerId == item.CustomerId);
 
-            await _unitOfWork.Wishlists.Insert(cartItem);
+            if (result == null)
+            {
+                var wishlisttem = _mapper.Map<Wishlist>(item);
+
+                await _unitOfWork.Wishlists.Insert(wishlisttem);
+            }
+            else
+            {
+                result.isDeleted = false;
+
+                result.AddedAt = DateTime.Now;
+
+                _unitOfWork.Wishlists.Update(result);
+            }
+
             await _unitOfWork.Save();
 
             return Created();
@@ -50,31 +64,52 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var results = await _unitOfWork.Wishlists.GetAll(item => item.CustomerId == customer.Id, include: item => item.Include(item => item.Product)
-                                            .ThenInclude(product => product.Images))
-                                            .ToListAsync();
+            var results = await _unitOfWork.Wishlists.GetAll(item => item.CustomerId == customer.Id && !item.isDeleted, include: item => item.Include(item => item.Product)
+                                                    .ThenInclude(product => product.Images)
+                                                .Include(item => item.Product)
+                                                    .ThenInclude(product => product.Reviews))
+                                                .ToListAsync();
 
             var cartItems = _mapper.Map<IEnumerable<GetWishlistDTO>>(results);
 
             return Ok(cartItems);
         }
 
-        [HttpDelete]
+        [HttpDelete("delete_item")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> DeleteWishListItem(AddWishlistDTO wishlistDTO)
+        public async Task<IActionResult> DeleteWishListItem([FromQuery] string customerId, [FromQuery] int productId)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (String.IsNullOrEmpty(customerId) || productId <= 0) return BadRequest();
 
-            var item = await _unitOfWork.Wishlists.Get(item => item.CustomerId == wishlistDTO.CustomerId && item.ProductId == wishlistDTO.ProductId);
+            var item = await _unitOfWork.Wishlists.Get(item => item.CustomerId == customerId && item.ProductId == productId);
 
             if (item == null) return BadRequest();
 
-            _unitOfWork.Wishlists.Delete(item);
+            item.isDeleted = true;
+            item.DeletedAt = DateTime.Now;
+
+            _unitOfWork.Wishlists.Update(item);
 
             await _unitOfWork.Save();
 
             return Ok();
         }
+
+        [HttpGet("isWishlist_item")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ContainsProduct([FromQuery] int productId, [FromQuery] string customerId)
+        {
+            if (productId <= 0)
+                return BadRequest();
+
+            var item = await _unitOfWork.Wishlists.Get(item => item.Product.Id == productId && item.CustomerId == customerId && !item.isDeleted);
+
+            var isWishlistItem = item == null ? false : true;
+
+            return Ok(new { isWishlistItem });
+        }
+
     }
 }

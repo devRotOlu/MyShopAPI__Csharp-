@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MyShopAPI.Core.DTOs.CartDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
+using Polly;
 
 namespace MyShopAPI.Controllers
 {
@@ -30,9 +31,22 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cartItem = _mapper.Map<Cart>(item);
+            var result = await _unitOfWork.Carts.Get(cart=>cart.ProductId == item.ProductId && cart.CustomerId == item.CustomerId);
 
-            await _unitOfWork.Carts.Insert(cartItem);
+            if (result == null)
+            {
+                var cartItem = _mapper.Map<Cart>(item);
+
+                await _unitOfWork.Carts.Insert(cartItem);
+            }
+            else
+            {
+                result.Quantity = item.Quantity;
+                result.DeletedAt = null;
+                result.AddedAt = DateTime.Now;
+
+                _unitOfWork.Carts.Update(result); 
+            }
 
             await _unitOfWork.Save();
 
@@ -47,9 +61,33 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cartItems = _mapper.Map<IEnumerable<Cart>>(items);
+            var productIds = items.Select(cart => cart.ProductId).ToList();
 
-            await _unitOfWork.Carts.InsertRange(cartItems);
+            var customerId = items.ToList()[0].CustomerId;
+
+            // get all soft-deleted items 
+            var existingCartItems = await _unitOfWork.Carts.GetAll()
+                .Where(cart => cart.CustomerId == customerId && productIds.Contains(cart.ProductId))
+                .ToListAsync();
+
+            foreach (var item in items)
+            {
+                var existingItem = existingCartItems
+                    .FirstOrDefault(cart => cart.ProductId == item.ProductId);
+
+                if (existingItem == null)
+                {
+                    var cartItem = _mapper.Map<Cart>(item);
+                    await _unitOfWork.Carts.Insert(cartItem);
+                }
+                else
+                {
+                    existingItem.Quantity = item.Quantity;
+                    existingItem.DeletedAt = null;
+                    existingItem.AddedAt = DateTime.Now;
+                    _unitOfWork.Carts.Update(existingItem);
+                }
+            }
 
             await _unitOfWork.Save();
 
@@ -128,11 +166,58 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            _unitOfWork.Carts.Delete(cartItem);
-
+            // soft delete
+            cartItem.Quantity = 0;
+            cartItem.DeletedAt = DateTime.Now;   
+            _unitOfWork.Carts.Update(cartItem);
             await _unitOfWork.Save();
-
             return Ok();
+        }
+
+        [HttpPost("move_to_wishlist")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> MoveToWishlist([FromQuery] int cartId)
+        {
+            if (cartId <= 0) return BadRequest();
+
+            var cartItem = await _unitOfWork.Carts.Get(item=>item.Id == cartId);
+
+            if (cartItem == null) return NotFound();
+
+            var item = await _unitOfWork.Wishlists
+                .Get(item=>item.CustomerId == cartItem.CustomerId && item.ProductId == cartItem.ProductId);
+
+            if(item == null)
+            {
+                var wishlitItem = new Wishlist
+                {
+                    CustomerId = cartItem.CustomerId,
+                    ProductId = cartItem.ProductId,
+                    AddedAt = DateTime.Now,
+                };
+                await _unitOfWork.Wishlists.Insert(wishlitItem);
+            }
+            else if (item.isDeleted) 
+            { 
+               item.isDeleted= false;
+               item.DeletedAt = null;
+               item.AddedAt = DateTime.Now;
+               _unitOfWork.Wishlists.Update(item);
+            }
+            else
+            {
+                return Conflict("Item already exits");
+            }
+
+            cartItem.Quantity = 0;
+            cartItem.DeletedAt = DateTime.Now;
+            _unitOfWork.Carts.Update(cartItem);
+            await _unitOfWork.Save();
+            return Ok("Moved to wishlist");
         }
     }
 }

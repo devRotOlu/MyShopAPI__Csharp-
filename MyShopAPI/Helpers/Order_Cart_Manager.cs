@@ -36,6 +36,7 @@ namespace MyShopAPI.Helpers
                 };
                 item.Orders.Add(cartOrder);
                 item.Quantity = 0; // set each cart item quantiy to zero i.e., clearing cart.
+                item.DeletedAt = DateTime.Now;
                 item.IsPurchased = 1;
                 updatedItems.Add(item);
             }

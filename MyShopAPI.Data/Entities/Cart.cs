@@ -15,5 +15,9 @@ namespace MyShopAPI.Data.Entities
         public decimal TotalCost { get; set; }
 
         public ICollection<CartOrder> Orders { get; set; } = null!;
+
+        public DateTime? DeletedAt { get; set; }
+
+        public DateTime AddedAt { get; set; }
     }
 }

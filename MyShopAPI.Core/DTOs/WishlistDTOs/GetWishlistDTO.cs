@@ -5,6 +5,6 @@ namespace MyShopAPI.Core.EntityDTO.WishlistDTOs
     public class GetWishlistDTO
     {
         public int Id;
-        public BaseGetProductDTO Product { get; set; } = null!;
+        public GetProductDTO Product { get; set; } = null!;
     }
 }
