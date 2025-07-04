@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyShopAPI.Data;
 
@@ -11,9 +12,11 @@ using MyShopAPI.Data;
 namespace MyShopAPI.Data.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250621223706_Added IsDeleted to DeliveryProfile")]
+    partial class AddedIsDeletedtoDeliveryProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,13 +54,13 @@ namespace MyShopAPI.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "cc70a1b9-d2b4-4133-a94f-bd6ec731e54a",
+                            Id = "f4afc9ec-ed02-48bf-a79f-db2204586b67",
                             Name = "customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = "d4140dae-5776-4435-9019-183350936d93",
+                            Id = "91ac2bc4-a711-4b16-aeca-d861c17ece32",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });
@@ -551,9 +554,6 @@ namespace MyShopAPI.Data.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Rating")
                         .HasColumnType("decimal(3,2)");
 
@@ -564,9 +564,7 @@ namespace MyShopAPI.Data.Migrations
                     b.Property<DateOnly>("ReviewDate")
                         .HasColumnType("date");
 
-                    b.HasKey("ReviewerId", "ProductId", "OrderId");
-
-                    b.HasIndex("OrderId");
+                    b.HasKey("ReviewerId", "ProductId");
 
                     b.HasIndex("ProductId");
 
@@ -808,12 +806,6 @@ namespace MyShopAPI.Data.Migrations
 
             modelBuilder.Entity("MyShopAPI.Data.Entities.ProductReview", b =>
                 {
-                    b.HasOne("MyShopAPI.Data.Entities.CustomerOrder", "Order")
-                        .WithMany("Reviews")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("MyShopAPI.Data.Entities.Product", "Product")
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId")
@@ -825,8 +817,6 @@ namespace MyShopAPI.Data.Migrations
                         .HasForeignKey("ReviewerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Order");
 
                     b.Navigation("Product");
 
@@ -886,8 +876,6 @@ namespace MyShopAPI.Data.Migrations
             modelBuilder.Entity("MyShopAPI.Data.Entities.CustomerOrder", b =>
                 {
                     b.Navigation("CartItems");
-
-                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("MyShopAPI.Data.Entities.DeliveryProfile", b =>

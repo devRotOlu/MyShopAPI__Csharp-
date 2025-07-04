@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data;
+using Org.BouncyCastle.Asn1;
 using System.Linq.Expressions;
 using X.PagedList;
 
@@ -50,7 +51,7 @@ namespace MyShopAPI.Core.Repository
         }
 
 
-        public IQueryable<T> GetAll(Expression<Func<T, bool>>? expression = null, Func<IQueryable<T>, IIncludableQueryable<T, Object>>? include = null)
+        public IQueryable<T> GetAll(Expression<Func<T, bool>>? expression = null, Func<IQueryable<T>, IIncludableQueryable<T, Object>>? include = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
         {
             IQueryable<T> query = _db;
 
@@ -62,6 +63,10 @@ namespace MyShopAPI.Core.Repository
             if (include != null)
             {
                 query = include!(query);
+            }
+            if (orderBy != null)
+            {
+                query = orderBy(query);
             }
 
             return query.AsNoTracking();
@@ -100,6 +105,11 @@ namespace MyShopAPI.Core.Repository
             {
                 _databaseContext.Entry(entity).State = EntityState.Modified;
             }
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _db.AnyAsync(predicate);
         }
     }
 }

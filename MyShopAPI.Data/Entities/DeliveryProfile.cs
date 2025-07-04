@@ -15,6 +15,8 @@ namespace MyShopAPI.Data.Entities
         [Required]
         public string LGA { get; set; } = null!;
         public string? Directions { get; set; }
+        public bool? IsDefaultProfile { get; set; }
+        public bool? IsDeleted { get; set; }
         public ICollection<CustomerOrder> Orders { get; set; } = null!;
     }
 }

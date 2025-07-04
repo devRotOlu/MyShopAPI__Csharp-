@@ -7,7 +7,6 @@ using MyShopAPI.Core.DTOs.UserDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
-using MyShopAPI.Services.Image;
 
 namespace MyShopAPI.Controllers
 {
@@ -19,15 +18,13 @@ namespace MyShopAPI.Controllers
         private readonly IAuthManager _authManager;
         private readonly IConfiguration _configuration;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IPhotoService _photoService;
 
-        public AccountController(IMapper mapper, IAuthManager authManager, IConfiguration configuration, IUnitOfWork unitOfWork, IPhotoService photoService)
+        public AccountController(IMapper mapper, IAuthManager authManager, IConfiguration configuration, IUnitOfWork unitOfWork)
         {
             _mapper = mapper;
             _authManager = authManager;
             _configuration = configuration;
             _unitOfWork = unitOfWork;
-            _photoService = photoService;
         }
 
         [HttpPost("signup")]
@@ -202,7 +199,7 @@ namespace MyShopAPI.Controllers
 
             if (user == null)
             {
-                return Forbid() ;
+                return Forbid();
             }
 
             var clientType = Request.Headers["X-Client-Type"].FirstOrDefault()?.ToLower();
@@ -214,7 +211,7 @@ namespace MyShopAPI.Controllers
                 rootUrl = $"{Request.Headers["X-Origin"].ToString()}{_configuration["password_reset_route"]}";
             }
 
-            await _authManager.GenerateForgotPasswordTokenAsync(user, user.Details.FirstName,rootUrl);
+            await _authManager.GenerateForgotPasswordTokenAsync(user, user.Details.FirstName, rootUrl);
 
             return NoContent();
         }
@@ -252,7 +249,7 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var refreshTokenObj = await _unitOfWork.RefreshTokens.Get(token => token.Token == oldToken,include:token=>token.Include(token=>token.Customer));
+            var refreshTokenObj = await _unitOfWork.RefreshTokens.Get(token => token.Token == oldToken, include: token => token.Include(token => token.Customer));
 
             if (refreshTokenObj == null || refreshTokenObj.ExpirationTime.CompareTo(DateTime.Now) < 0)
             {
@@ -363,19 +360,29 @@ namespace MyShopAPI.Controllers
                 return BadRequest(ModelState);
             }
 
+
             var mappedProfile = _mapper.Map<DeliveryProfile>(profileDTO);
 
             var email = User.Identity!.Name!;
 
             var user = await _unitOfWork.Customers.Get((user) => user.Email == email);
 
+            var defaultProfile = await _unitOfWork.DeliveryProfiles.Get(profile => profile.IsDefaultProfile == true && profile.CustomerId == user.Id);
+
+            if (defaultProfile != null)
+            {
+                defaultProfile.IsDefaultProfile = false;
+                _unitOfWork.DeliveryProfiles.Update(defaultProfile);
+            }
+
             mappedProfile.CustomerId = user.Id;
+            mappedProfile.IsDefaultProfile = true;
 
             await _unitOfWork.DeliveryProfiles.Insert(mappedProfile);
 
             await _unitOfWork.Save();
 
-            return Created("", profileDTO);
+            return Created("", mappedProfile);
         }
 
         [Authorize]
@@ -393,7 +400,7 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(profile => profile.CustomerId == userId).ToListAsync();
+            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(profile => profile.CustomerId == userId && profile.IsDeleted != true).ToListAsync();
 
             var profileDTOs = _mapper.Map<IEnumerable<DeliveryProfileDTO>>(profiles);
 
@@ -446,7 +453,8 @@ namespace MyShopAPI.Controllers
             if (profile is null)
                 return BadRequest();
 
-            _unitOfWork.DeliveryProfiles.Delete(profile);
+            profile.IsDeleted = true;
+            _unitOfWork.DeliveryProfiles.Update(profile);
 
             await _unitOfWork.Save();
 

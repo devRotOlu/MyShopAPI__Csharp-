@@ -19,6 +19,7 @@ namespace MyShopAPI.Data.Entities
         [Required, ForeignKey("Customer")]
         public string CustomerId { get; set; } = null!;
         public Customer Customer { get; set; } = null!;
+        public ICollection<ProductReview> Reviews { get; set; } = null!;
 
         private static string GenerateOrderId()
         {

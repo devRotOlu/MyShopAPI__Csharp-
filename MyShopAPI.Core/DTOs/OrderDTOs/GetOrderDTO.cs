@@ -4,6 +4,8 @@ namespace MyShopAPI.Core.DTOs.OrderDTOs
 {
     public class GetOrderDTO
     {
+        public int Id { get; set; }
+
         public string OrderId { get; set; } = null!;
 
         public DateOnly OrderDate { get; set; }

@@ -2,12 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyShopAPI.Core.DTOs.CategoryDTOs;
 using MyShopAPI.Core.DTOs.ProductAttributeDTOs;
 using MyShopAPI.Core.DTOs.ProductDTOs;
-using MyShopAPI.Core.DTOs.ProductReviewDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
+using MyShopAPI.Helpers;
 using MyShopAPI.Services.Image;
 using Newtonsoft.Json;
 
@@ -97,7 +96,7 @@ namespace MyShopAPI.Controllers
         public async Task<IActionResult> GetProduct([FromQuery] int productId)
         {
             var result = await _unitOfWork.Products.Get(product => product.Quantity != 0 && product.Id == productId, include: product => product.Include(product => product.Images)
-                 .Include(product=>product.Category)
+                 .Include(product => product.Category)
                  .Include(product => product.Reviews)
                     .ThenInclude(review => review.Reviewer)
                     .ThenInclude(reviewer => reviewer.Details)
@@ -134,19 +133,31 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetBrandProducts([FromQuery] string brand,[FromQuery] int? min = 0, [FromQuery] int? max = int.MaxValue, [FromQuery] int? rating = 0) 
+        public async Task<IActionResult> GetBrandProducts([FromQuery] string brand, [FromQuery] int? min = 0, [FromQuery] int? max = int.MaxValue, [FromQuery] int? rating = 0, [FromQuery] string? sortBy = null, [FromQuery] string? sortOrder = null)
         {
             if (String.IsNullOrEmpty(brand))
             {
                 return BadRequest();
             }
 
-            var results = await _unitOfWork.Products.GetAll(product => product.Attributes != null && product.Attributes.Any(attribute => attribute.Value == brand) && min <= product.UnitPrice 
-              && product.UnitPrice <= max && product.AverageRating >= rating, include: product => product.Include(product => product.Images)
+            var allowedFields = new[] { "Name", "UnitPrice" };
+
+            Func<IQueryable<Product>, IOrderedQueryable<Product>>? orderBy = null;
+
+            if (!string.IsNullOrWhiteSpace(sortBy) &&
+        allowedFields.Contains(sortBy, StringComparer.OrdinalIgnoreCase))
+            {
+                bool descending = sortOrder?.ToLower() == "desc";
+                orderBy = q => q.OrderByProperty(sortBy, descending);
+            }
+
+            var results = await _unitOfWork.Products.GetAll(product => product.Attributes != null && product.Attributes.Any(attribute => attribute.Value == brand) && min <= product.UnitPrice
+              && product.UnitPrice <= max && product.AverageRating >= rating, orderBy: orderBy, include: product => product.Include(product => product.Images)
                  .Include(product => product.Reviews)
-                    .ThenInclude(review=>review.Reviewer)
-                 .Include(product=>product.Category)).ToListAsync();
-                
+                    .ThenInclude(review => review.Reviewer)
+                 .Include(product => product.Category)).ToListAsync();
+
+
             var products = _mapper.Map<IEnumerable<GetProductDTO>>(results);
 
             return Ok(products);
@@ -157,18 +168,27 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetCategoryProducts([FromQuery] int categoryId, [FromQuery] int? min = 0, [FromQuery] int? max = int.MaxValue, [FromQuery] int? rating = 0)
+        public async Task<IActionResult> GetCategoryProducts([FromQuery] int categoryId, [FromQuery] int? min = 0, [FromQuery] int? max = int.MaxValue, [FromQuery] int? rating = 0, [FromQuery] string? sortBy = null, [FromQuery] string? sortOrder = null)
         {
             if (categoryId <= 0)
             {
                 return BadRequest();
             }
 
-            var results = await _unitOfWork.Products.GetAll(product => product.CategoryId == categoryId && min <= product.UnitPrice && product.UnitPrice <= max && product.AverageRating >= rating, include: product => product.Include(product => product.Images)
+            var allowedFields = new[] { "Name", "UnitPrice" };
+
+            Func<IQueryable<Product>, IOrderedQueryable<Product>>? orderBy = null;
+
+            if (!string.IsNullOrWhiteSpace(sortBy) &&
+        allowedFields.Contains(sortBy, StringComparer.OrdinalIgnoreCase))
+            {
+                bool descending = sortOrder?.ToLower() == "desc";
+                orderBy = q => q.OrderByProperty(sortBy, descending);
+            }
+
+            var results = await _unitOfWork.Products.GetAll(product => product.CategoryId == categoryId && min <= product.UnitPrice && product.UnitPrice <= max && product.AverageRating >= rating, orderBy: orderBy, include: product => product.Include(product => product.Images)
                  .Include(product => product.Reviews)
-                    .ThenInclude(review => review.Reviewer)
-                    .ThenInclude(reviewer => reviewer.Details)
-                 .Include(product=>product.Category)).ToListAsync();
+                 .Include(product => product.Category)).ToListAsync();
 
             var result = await _unitOfWork.Categories.Get(category => category.Id == categoryId);
 
@@ -189,61 +209,17 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var products = await _unitOfWork.Products.GetAll(include: product => product.Include(product => product.Images)
-                .Where(product => EF.Functions.Like(product.Name, $"%{searchTerm}%"))
-                 .Include(product => product.Category)
-                 .Include(product => product.Reviews)
-                    .ThenInclude(review => review.Reviewer)
-                    .ThenInclude(reviewer => reviewer.Details)
-                  .Include(product => product.Attributes)
-                    .ThenInclude(attribute => attribute.Attribute)).ToListAsync();
+            var products = await _unitOfWork.Products.GetAll(product => EF.Functions.Like(product.Name, $"%{searchTerm}%") || EF.Functions.Like(product.Category.Name, $"%{searchTerm}%"), include: product => product.Include(product => product.Images)).ToListAsync();
 
-            var categories = await _unitOfWork.Categories.GetAll(category=> EF.Functions.Like(category.Name, $"%{searchTerm}%")).ToListAsync();
-
-            var brands = await _unitOfWork.ProductAttributes.GetAll(attribute=> attribute.Attribute.Name == "brand" &&
+            var brands = await _unitOfWork.ProductAttributes.GetAll(attribute => attribute.Attribute.Name == "brand" &&
                 EF.Functions.Like(attribute.Value, $"%{searchTerm}%"), include: attribute => attribute.Include(attribute => attribute.Attribute))
-                    .Select(attribute=>attribute.Value)
+                    .Select(attribute => attribute.Value)
                     .Distinct()
                     .ToListAsync();
 
             var _products = _mapper.Map<IEnumerable<GetProductDTO>>(products);
-            var _categories = _mapper.Map<IEnumerable<GetCategoryDTO>>(categories);
 
-            return Ok(new { products=_products, categories=_categories,brands});
-        }
-
-        [HttpPost("add-review")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> AddReview([FromBody] AddReviewDTO reviewDTO)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var review = _mapper.Map<ProductReview>(reviewDTO);
-
-            await _unitOfWork.ProductReviews.Insert(review);
-            await _unitOfWork.Save();
-
-            return Created();
-        }
-
-        [HttpGet("list-reviews")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> ViewReviews([FromQuery] int productId)
-        {
-            if (productId <= 0) return BadRequest();
-
-            var result = await _unitOfWork.ProductReviews.GetAll(review => review.ProductId == productId, include: review => review.Include(review => review.Reviewer)).ToListAsync();
-
-            var reviews = _mapper.Map<IEnumerable<ReviewDTO>>(result);
-
-            return Ok(reviews);
+            return Ok(new { products = _products, brands });
         }
     }
 }

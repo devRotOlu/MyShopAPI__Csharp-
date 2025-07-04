@@ -37,6 +37,26 @@ namespace MyShopAPI.CustomMiddlewares
             return Tuple.Create(value1, value2);
         }
 
+        public Tuple<object, object, object> GetPropertyValue<T>(string jsonData, string property1, string property2, string property3) where T : class
+        {
+            var (dataType, data) = GetDataType<T>(jsonData);
+
+            var property1Info = dataType.GetProperty(property1);
+
+            var value1 = property1Info!.GetValue(data)!;
+
+            var property2Info = dataType.GetProperty(property2);
+
+            var value2 = property2Info!.GetValue(data)!;
+
+            var property3Info = dataType.GetProperty(property3);
+
+            var value3 = property3Info!.GetValue(data)!;
+
+            return Tuple.Create(value1, value2, value3);
+        }
+
+
         public async Task<string> ReadRequest(HttpContext context)
         {
             context.Request.EnableBuffering();
@@ -59,7 +79,7 @@ namespace MyShopAPI.CustomMiddlewares
             return _unitOfWork;
         }
 
-        public void VerifyItem<T>(Func<T, bool> exp, T data) 
+        public void VerifyItem<T>(Func<T, bool> exp, T data)
         {
             if (exp.Invoke(data))
             {
