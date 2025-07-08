@@ -1,0 +1,31 @@
+name: Deploy to Fly.io
+
+on:
+  push:
+    branches:
+      - main # Adjust this if your default branch is not 'main'
+
+jobs:
+  deploy:
+    name: Deploy My.Api to Fly.io
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: My.Api # 👈 this must match your API project folder
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x # Adjust to match your .NET version
+
+      - name: Deploy to Fly.io
+        uses: superfly/flyctl-actions@1.3
+        with:
+          args: "deploy --remote-only"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
