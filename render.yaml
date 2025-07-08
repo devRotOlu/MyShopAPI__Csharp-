@@ -1,7 +1,6 @@
 services:
   - type: web
     name: myshopapi-web
-    runtime: dotnet
     plan: free
     repo: https://github.com/devRotOlu/MyShopAPI__Csharp-
     branch: main
