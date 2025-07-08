@@ -1,3 +1,7 @@
+databases:
+  - name: my-postgres-db
+    plan: free
+
 services:
   - type: web
     name: myshopapi-web
@@ -10,11 +14,7 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
-      - key: CONNECTIONSTRINGS__DEFAULTCONNECTION
+      - key: "CONNECTIONSTRINGS__DEFAULTCONNECTION"
         fromDatabase:
           name: my-postgres-db
           property: connectionString
-
-databases:
-  - name: my-postgres-db
-    plan: free
