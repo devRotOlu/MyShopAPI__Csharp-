@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: myshopapi-web
+    runtime: dotnet
+    plan: free
+    repo: https://github.com/devRotOlu/MyShopAPI__Csharp-
+    branch: main
+    buildCommand: dotnet publish ./MyShopAPI/MyShopAPI.csproj -c Release -o out
+    startCommand: dotnet out/MyShopAPI.dll
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: CONNECTIONSTRINGS__DEFAULTCONNECTION
+        fromDatabase:
+          name: my-postgres-db
+          property: connectionString
+
+databases:
+  - name: my-postgres-db
+    plan: free
