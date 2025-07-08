@@ -12,7 +12,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: My.Api # 👈 this must match your API project folder
+        working-directory: MyShopAPI # 👈 this must match your API project folder
 
     steps:
       - name: Checkout code
