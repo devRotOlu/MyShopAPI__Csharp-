@@ -6,6 +6,7 @@ services:
   - type: web
     name: myshopapi-web
     plan: free
+    runtime: dotnet
     repo: https://github.com/devRotOlu/MyShopAPI__Csharp-
     branch: main
     buildCommand: dotnet publish ./MyShopAPI/MyShopAPI.csproj -c Release -o out
@@ -18,3 +19,5 @@ services:
         fromDatabase:
           name: my-postgres-db
           property: connectionString
+      - key: DOTNET_VERSION
+        value: 8.0
