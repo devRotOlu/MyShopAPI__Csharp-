@@ -26,7 +26,7 @@ namespace MyShopAPI.Services.PayStack
                 AmountInKobo = (int)Math.Ceiling(amount * 14),
                 Email = email,
                 Currency = "NGN",
-                CallbackUrl = _configuration["Paystack:callback_url"],
+                CallbackUrl = _configuration["Paystack:CallbackUrl"],
                 Channels= new string[]{"card"}
             };
 

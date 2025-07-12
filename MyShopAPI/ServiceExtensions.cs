@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MyShopAPI.Data;
@@ -30,7 +31,12 @@ namespace MyShopAPI
         {
             services.AddDbContext<DatabaseContext>(option =>
             {
-                option.UseSqlServer(builder.Configuration.GetConnectionString("sqlconnection"));
+                var environment = builder.Environment.EnvironmentName;
+
+                if (environment == "Development")
+                    option.UseSqlServer(builder.Configuration.GetConnectionString("sqlconnection"));
+                else option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+
                 option.ConfigureWarnings(warnings => warnings.Log(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             });
         }

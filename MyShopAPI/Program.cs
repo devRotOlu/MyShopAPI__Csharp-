@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MyShopAPI;
 using MyShopAPI.Core.AuthManager;
 using MyShopAPI.Core.Configurations;
@@ -63,6 +64,8 @@ builder.Services.AddCors(corsOptions =>
     });
 });
 
+builder.Services.AddHealthChecks();
+
 // Optional: Customize logging level and provider
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole(); // Ensure Console logger is added
@@ -72,6 +75,13 @@ builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 var _identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services); _identityBuilder.AddEntityFrameworkStores<DatabaseContext>().AddDefaultTokenProviders();
 var app = builder.Build();
+
+// Apply migrations on startup
+using(var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+    db.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -90,6 +100,7 @@ app.UseMiddleware<CartProductVerificationMiddleware>();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 app.Run();

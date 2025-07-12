@@ -157,7 +157,7 @@ namespace MyShopAPI.Controllers
 
             var refreshTokenObj = await _unitOfWork.RefreshTokens.Get(token => token.CustomerId == customer.Id);
 
-            var expirationTime = _configuration.GetSection("refreshToken:LifeTime").Value;
+            var expirationTime = _configuration.GetSection("RefreshToken:LifeTime").Value;
             if (refreshTokenObj != null)
             {
                 _unitOfWork.RefreshTokens.Update(new RefreshToken
@@ -208,7 +208,7 @@ namespace MyShopAPI.Controllers
 
             if (clientType == "web")
             {
-                rootUrl = $"{Request.Headers["X-Origin"].ToString()}{_configuration["password_reset_route"]}";
+                rootUrl = $"{Request.Headers["X-Origin"].ToString()}{_configuration["PasswordResetRoute"]}";
             }
 
             await _authManager.GenerateForgotPasswordTokenAsync(user, user.Details.FirstName, rootUrl);
@@ -264,7 +264,7 @@ namespace MyShopAPI.Controllers
                 RefreshToken = refreshToken
             }, HttpContext);
 
-            var expirationTime = _configuration.GetSection("refreshToken:LifeTime").Value;
+            var expirationTime = _configuration.GetSection("RefreshToken:LifeTime").Value;
 
             _unitOfWork.RefreshTokens.Update(new RefreshToken
             {

@@ -191,10 +191,10 @@ namespace MyShopAPI.Core.AuthManager
                 Expires = accesstokenExpirationTime
             });
 
-            var refreshTokenLifetime = Convert.ToDouble(_configuration.GetSection("refreshToken:Lifetime").Value);
+            var refreshTokenLifetime = Convert.ToDouble(_configuration.GetSection("RefreshToken:Lifetime").Value);
 
             var refreshtokenExpirationTime = DateTime.Now.AddMinutes(refreshTokenLifetime);
-            context.Response.Cookies.Append("refreshToken", tokens.RefreshToken!, new CookieOptions
+            context.Response.Cookies.Append("RefreshToken", tokens.RefreshToken!, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
