@@ -7,7 +7,7 @@ namespace MyShopAPI.Helpers
     {
         public async static Task<decimal> ComputeCartTotal(this IUnitOfWork _unitOfWork,string userId)
         {
-            var cartItems = await _unitOfWork.Carts.GetAll(cart=> cart.CustomerId == userId)
+            var cartItems = await _unitOfWork.Carts.GetAll(expression: cart => cart.CustomerId == userId)
                                             .ToListAsync();
 
             decimal totalCost = 0;

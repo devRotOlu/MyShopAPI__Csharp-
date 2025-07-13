@@ -92,7 +92,7 @@ namespace MyShopAPI.Controllers
         {
             if (orderId <= 0) return BadRequest();
 
-            var orderReviews = await _unitOfWork.ProductReviews.GetAll(review => review.OrderId == orderId)
+            var orderReviews = await _unitOfWork.ProductReviews.GetAll(expression: review => review.OrderId == orderId)
                 .Select(review=> new { review.ProductId,review.Rating,review.Review })
                 .ToListAsync();
 

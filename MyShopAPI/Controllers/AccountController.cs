@@ -400,7 +400,7 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(profile => profile.CustomerId == userId && profile.IsDeleted != true).ToListAsync();
+            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(expression:profile => profile.CustomerId == userId && profile.IsDeleted != true).ToListAsync();
 
             var profileDTOs = _mapper.Map<IEnumerable<DeliveryProfileDTO>>(profiles);
 
@@ -429,7 +429,7 @@ namespace MyShopAPI.Controllers
 
             await _unitOfWork.Save();
 
-            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(profile => profile.CustomerId == user.Id).ToListAsync();
+            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(expression: profile => profile.CustomerId == user.Id).ToListAsync();
 
             var profileDTOs = _mapper.Map<IEnumerable<DeliveryProfileDTO>>(profiles);
 

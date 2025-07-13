@@ -37,7 +37,8 @@ namespace MyShopAPI
                     option.UseSqlServer(builder.Configuration.GetConnectionString("sqlconnection"));
                 else option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 
-                option.ConfigureWarnings(warnings => warnings.Log(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                //option.ConfigureWarnings(warnings => warnings.Log(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
             });
         }
 

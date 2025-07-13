@@ -5,6 +5,6 @@ namespace MyShopAPI.Core.DTOs.ProductReviewDTOs
     public class ReviewDTO : ProductReviewDTO
     {
         public ReviewerDTO Reviewer { get; set; } = null!;
-        public DateOnly ReviewDate { get; set; }
+        public string ReviewDate { get; set; } = null!;
     }
 }

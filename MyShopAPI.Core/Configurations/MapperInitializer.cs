@@ -40,11 +40,14 @@ namespace MyShopAPI.Core.Configurations
             CreateMap<Product, BaseGetProductDTO>().ReverseMap();
             CreateMap<ProductImage, ImageDTO>().ReverseMap();
             CreateMap<ProductReview, AddReviewDTO>().ReverseMap();
-            CreateMap<ProductReview, ReviewDTO>().ReverseMap();
+            CreateMap<ProductReview, ReviewDTO>()
+                .ForMember(dest => dest.ReviewDate, opt => opt.MapFrom(src => src.ReviewDate.ToString("yyyy-MM-dd")))
+                .ReverseMap();
             CreateMap<DeliveryProfile, AddDeliveryProfileDTO>().ReverseMap();
             CreateMap<DeliveryProfile, DeliveryProfileDTO>().ReverseMap();
             CreateMap<CustomerOrder, GetOrderDTO>()
-                .ForMember(orderDTO => orderDTO.OrderedItems, opt => opt.MapFrom(order => order.CartItems));
+                .ForMember(orderDTO => orderDTO.OrderedItems, opt => opt.MapFrom(order => order.CartItems))
+                .ForMember(orderDTO => orderDTO.OrderDate,opt=>opt.MapFrom(src=>src.OrderDate.ToString("yyyy-MM-dd")));
             CreateMap<CustomerOrder, AddOrderDTO>().ReverseMap();
             CreateMap<CartOrder, CartOrderDTO>().ReverseMap();
             CreateMap<Category, GetCategoryDTO>().ReverseMap();

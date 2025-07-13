@@ -8,7 +8,7 @@ namespace MyShopAPI.Core.DTOs.OrderDTOs
 
         public string OrderId { get; set; } = null!;
 
-        public DateOnly OrderDate { get; set; }
+        public string OrderDate { get; set; } = null!;
 
         public DeliveryProfile DeliveryProfile { get; set; } = null!;
 

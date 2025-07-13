@@ -13,7 +13,7 @@ namespace MyShopAPI.Helpers
 
             var customer = await _unitOfWork.Customers.Get(user => user.Email == email);
 
-            var items = await _unitOfWork.Carts.GetAll(item=>item.CustomerId == customer.Id && item.Quantity != 0).ToListAsync();
+            var items = await _unitOfWork.Carts.GetAll(expression: item => item.CustomerId == customer.Id && item.Quantity != 0).ToListAsync();
 
             var order = new CustomerOrder();
 

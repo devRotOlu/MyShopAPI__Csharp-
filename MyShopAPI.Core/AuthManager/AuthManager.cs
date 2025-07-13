@@ -221,8 +221,8 @@ namespace MyShopAPI.Core.AuthManager
             };
 
             var tokenHandler = new JsonWebTokenHandler();
-            var securityToken = tokenHandler.ReadToken(accessToken);
-            return await tokenHandler.ValidateTokenAsync(securityToken, validationParameters);
+            //var securityToken = tokenHandler.ReadToken(accessToken);
+            return await tokenHandler.ValidateTokenAsync(accessToken, validationParameters);
         }
 
         public async Task<IdentityResult> DeleteAccount(Customer user)
