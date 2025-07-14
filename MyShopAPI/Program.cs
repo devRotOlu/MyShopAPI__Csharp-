@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MyShopAPI;
 using MyShopAPI.Core.AuthManager;
 using MyShopAPI.Core.Configurations;
@@ -13,6 +15,7 @@ using MyShopAPI.Services.Models;
 using MyShopAPI.Services.Monnify;
 using MyShopAPI.Services.PayStack;
 using Newtonsoft.Json.Converters;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,7 +72,13 @@ builder.Services.AddCors(corsOptions =>
     });
 });
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy("App is running"))
+    .AddNpgSql(
+        builder.Configuration.GetConnectionString("DefaultConnection")!,
+        name: "PostgreSQL",
+        tags: new[] { "db", "postgres" }
+    );
 
 // Optional: Customize logging level and provider
 builder.Logging.ClearProviders();
@@ -115,6 +124,26 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+
+        var result = JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new {
+                component = e.Key,
+                status = e.Value.Status.ToString(),
+                error = e.Value.Exception?.Message
+            }),
+            totalDuration = report.TotalDuration.TotalMilliseconds + "ms"
+        });
+
+        await context.Response.WriteAsync(result);
+    }
+});
+
 
 app.Run();
