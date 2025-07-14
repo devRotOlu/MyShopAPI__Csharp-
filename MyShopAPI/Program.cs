@@ -112,7 +112,11 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 app.UseCors("CorsPolicy");
-app.UseHttpsRedirection();
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
+
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<CardDecryptionMiddleware>();
