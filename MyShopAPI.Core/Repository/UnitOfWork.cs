@@ -1,5 +1,6 @@
 ﻿using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data;
+using MyShopAPI.Data.ApplicationDBContext;
 using MyShopAPI.Data.Entities;
 using OtherAttribute = MyShopAPI.Data.Entities.Attribute;
 
@@ -7,7 +8,7 @@ namespace MyShopAPI.Core.Repository
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly DatabaseContext _databaseContext;
+        private readonly IApplicationDbContext _databaseContext;
         public IGenericRepository<Customer> Customers { get; set; }
         public IGenericRepository<Product> Products { get; set; }
         public IGenericRepository<ProductImage> ProductImages { get; set; }

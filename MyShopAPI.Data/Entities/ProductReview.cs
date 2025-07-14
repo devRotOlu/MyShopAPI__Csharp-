@@ -18,7 +18,7 @@ namespace MyShopAPI.Data.Entities
         public CustomerOrder Order { get; set; } = null!;
         [Required]
         public string Review { get; set; } = null!;
-        [Required, Column(TypeName = "decimal(3,2)")]
+        [Required, Precision(3, 2)]
         public decimal Rating { get; set; }
         public DateTime ReviewDate { get; set; } = DateTime.Today;
     }

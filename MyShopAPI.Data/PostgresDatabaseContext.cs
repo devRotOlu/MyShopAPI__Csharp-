@@ -8,12 +8,10 @@ using OtherAttribute = MyShopAPI.Data.Entities.Attribute;
 
 namespace MyShopAPI.Data
 {
-    public class DatabaseContext : IdentityDbContext<Customer>,IApplicationDbContext
+    public class PostgresDatabaseContext : IdentityDbContext<Customer>,IApplicationDbContext
     {
-
-        public DatabaseContext(DbContextOptions options) :
-            base(options)
-        { }
+        public PostgresDatabaseContext(DbContextOptions options):base(options) { }
+       
         public DbSet<Cart> Carts { get; set; }
         public DbSet<Wishlist> Wishlists { get; set; }
         public DbSet<Product> Products { get; set; }
@@ -33,32 +31,22 @@ namespace MyShopAPI.Data
             base.OnModelCreating(builder);
             builder.ApplyConfiguration(new RolesConfiguration());
 
-            builder.Entity<ProductReview>()
-                .ToTable(tb => tb.HasTrigger("SomeTrigger"));
-
             builder.Entity<DeliveryProfile>()
-                .HasMany(entity => entity.Orders)
-                .WithOne(entity => entity.DeliveryProfile)
-                .OnDelete(DeleteBehavior.ClientNoAction);
+               .HasMany(entity => entity.Orders)
+               .WithOne(entity => entity.DeliveryProfile)
+               .OnDelete(DeleteBehavior.ClientNoAction);
 
             builder.Entity<Customer>()
                 .HasMany(entity => entity.Orders)
                 .WithOne(entity => entity.Customer)
                 .OnDelete(DeleteBehavior.ClientNoAction);
 
-            builder.Entity<Cart>()
-                .ToTable(tb=>tb.HasTrigger("SomeTrigger"))
-                .Property(cart => cart.Id)
-                .UseIdentityColumn()
-                .ValueGeneratedOnAdd()
-                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
-
             builder.Entity<Wishlist>()
-               .Property(item => item.Id)
-               .UseIdentityColumn()
-               .ValueGeneratedOnAdd()
-               .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore); 
-                   
+              .Property(item => item.Id)
+              .UseIdentityColumn()
+              .ValueGeneratedOnAdd()
+              .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
         }
     }
+
 }

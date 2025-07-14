@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MyShopAPI.Data;
+using MyShopAPI.Data.ApplicationDBContext;
 using MyShopAPI.Data.Entities;
 using System.Text;
 
@@ -12,7 +12,7 @@ namespace MyShopAPI
 {
     public static class ServiceExtensions
     {
-        public static void ConfigureIdentity(this IServiceCollection services) 
+        public static void ConfigureIdentity(this IServiceCollection services)
         {
             services.AddIdentity<Customer, IdentityRole>(option =>
             {
@@ -27,19 +27,41 @@ namespace MyShopAPI
             });
         }
 
-        public static void ConfigureDBContext(this IServiceCollection services,WebApplicationBuilder builder) 
+        public static void ConfigureDBContext(this IServiceCollection services, WebApplicationBuilder builder)
         {
-            services.AddDbContext<DatabaseContext>(option =>
+            var environment = builder.Environment.EnvironmentName;
+            if (environment == "Development")
             {
-                var environment = builder.Environment.EnvironmentName;
-
-                if (environment == "Development")
+                services.AddDbContext<DatabaseContext>(option =>
+                {
                     option.UseSqlServer(builder.Configuration.GetConnectionString("sqlconnection"));
-                else option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+                    option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
+                });
+                var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services);
+                identityBuilder.AddEntityFrameworkStores<DatabaseContext>().AddDefaultTokenProviders();
+                builder.Services.AddScoped<IApplicationDbContext, DatabaseContext>();
+            }
+            else
+            {
+                services.AddDbContext<PostgresDatabaseContext>(option =>
+                {
+                    option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+                    option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
+                });
+                var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services); identityBuilder.AddEntityFrameworkStores<PostgresDatabaseContext>().AddDefaultTokenProviders();
+                builder.Services.AddScoped<IApplicationDbContext, PostgresDatabaseContext>();
+            }
+            //services.AddDbContext<PostgresDatabaseContext>(option =>
+            //{
+            //    var environment = builder.Environment.EnvironmentName;
+            //    option.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection"));
+            //    //if (environment == "Development")
+            //    //    option.UseSqlServer(builder.Configuration.GetConnectionString("sqlconnection"));
+            //    //else option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 
-                //option.ConfigureWarnings(warnings => warnings.Log(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
-            });
+            //    //option.ConfigureWarnings(warnings => warnings.Log(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            //    option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
+            //});
         }
 
         public static void ConfigureAuthentication(this IServiceCollection services, WebApplicationBuilder builder)
@@ -55,51 +77,51 @@ namespace MyShopAPI
                     })
                .AddJwtBearer(options =>
                {
-                     var jwtSettings = builder.Configuration.GetSection("Jwt");
-                     var key = jwtSettings.GetSection("key").Value;
-                    options.IncludeErrorDetails = true;
-                    options.RequireHttpsMetadata = true;
-                    options.SaveToken = true;
+                   var jwtSettings = builder.Configuration.GetSection("Jwt");
+                   var key = jwtSettings.GetSection("key").Value;
+                   options.IncludeErrorDetails = true;
+                   options.RequireHttpsMetadata = true;
+                   options.SaveToken = true;
 
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidAudience = jwtSettings.GetSection("Issuer").Value,
-                        ValidateLifetime = true,
-                        ValidIssuer = jwtSettings.GetSection("Issuer").Value,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!)),
-                        RequireExpirationTime = true,
-                    };
+                   options.TokenValidationParameters = new TokenValidationParameters
+                   {
+                       ValidateIssuer = true,
+                       ValidateAudience = true,
+                       ValidAudience = jwtSettings.GetSection("Issuer").Value,
+                       ValidateLifetime = true,
+                       ValidIssuer = jwtSettings.GetSection("Issuer").Value,
+                       ValidateIssuerSigningKey = true,
+                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!)),
+                       RequireExpirationTime = true,
+                   };
 
-                    // to implement httponly cookie JSON Web Token
-                    options.Events = new JwtBearerEvents
-                    {
-                         OnMessageReceived = ctx =>
-                        {
-                            if (ctx.Request.Cookies.ContainsKey("accessToken"))
-                            {
-                                ctx.Token = ctx.Request.Cookies["accessToken"];
-                            }
-                            return Task.CompletedTask;
-                        }
-                    };
-                });
+                   // to implement httponly cookie JSON Web Token
+                   options.Events = new JwtBearerEvents
+                   {
+                       OnMessageReceived = ctx =>
+                      {
+                          if (ctx.Request.Cookies.ContainsKey("accessToken"))
+                          {
+                              ctx.Token = ctx.Request.Cookies["accessToken"];
+                          }
+                          return Task.CompletedTask;
+                      }
+                   };
+               });
         }
 
         public static void ConfigureSwagger(this IServiceCollection services)
         {
-            services.AddSwaggerGen( c =>
+            services.AddSwaggerGen(c =>
             {
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                     Description = @"JWT Authorization bearer using the Bearer scheme. Enter 'Bearer' [space] and then enter your token in the text input below. Example: 'Bearer 1234abcde' ",
-                     Name = "Authorization",
+                    Description = @"JWT Authorization bearer using the Bearer scheme. Enter 'Bearer' [space] and then enter your token in the text input below. Example: 'Bearer 1234abcde' ",
+                    Name = "Authorization",
                     In = ParameterLocation.Header,
                     //    Type = SecuritySchemeType.ApiKey,
                     Scheme = JwtBearerDefaults.AuthenticationScheme,
-                        Type = SecuritySchemeType.Http,
+                    Type = SecuritySchemeType.Http,
                     BearerFormat = "JWT"
                 });
 

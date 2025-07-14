@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data;
-using Org.BouncyCastle.Asn1;
+using MyShopAPI.Data.ApplicationDBContext;
 using System.Linq.Expressions;
 using X.PagedList;
 
@@ -11,15 +11,14 @@ namespace MyShopAPI.Core.Repository
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly DatabaseContext _databaseContext;
+        protected readonly DbContext _databaseContext;
 
         private DbSet<T> _db;
 
-        public GenericRepository(DatabaseContext databaseContext)
+        public GenericRepository(IApplicationDbContext databaseContext)
         {
-            _databaseContext = databaseContext;
-
-            _db = databaseContext.Set<T>();
+            _databaseContext = (DbContext)databaseContext;
+            _db = _databaseContext.Set<T>();
         }
 
         public void Delete(T entity)
@@ -31,7 +30,7 @@ namespace MyShopAPI.Core.Repository
         {
             _db.RemoveRange(entities);
         }
-        
+
         public async Task<T> Get(Expression<Func<T, bool>>? expression, Func<IQueryable<T>, IIncludableQueryable<T, Object>>? include = null)
         {
             IQueryable<T> query = _db;
@@ -84,7 +83,7 @@ namespace MyShopAPI.Core.Repository
                 }
             }
 
-            return query.AsNoTracking().ToPagedList(requestParams.PageNumber,requestParams.PageSize);
+            return query.AsNoTracking().ToPagedList(requestParams.PageNumber, requestParams.PageSize);
         }
 
         public async Task Insert(T entity)

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MyShopAPI;
 using MyShopAPI.Core.AuthManager;
@@ -8,7 +7,6 @@ using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Repository;
 using MyShopAPI.CustomMiddlewares;
 using MyShopAPI.Data;
-using MyShopAPI.Data.Entities;
 using MyShopAPI.Services.Email;
 using MyShopAPI.Services.Image;
 using MyShopAPI.Services.Models;
@@ -17,6 +15,13 @@ using MyShopAPI.Services.PayStack;
 using Newtonsoft.Json.Converters;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load config
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables();
+var environment = builder.Environment;
 
 // Add services to the container.
 
@@ -73,14 +78,21 @@ builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 //builder.Services.AddIdentityApiEndpoints<Customer>();
 
-var _identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services); _identityBuilder.AddEntityFrameworkStores<DatabaseContext>().AddDefaultTokenProviders();
 var app = builder.Build();
 
-// Apply migrations on startup
-using(var scope = app.Services.CreateScope())
+// Apply migrations only in production (optional)
+using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-    db.Database.Migrate();
+    if (environment.IsProduction())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<PostgresDatabaseContext>();
+        db.Database.Migrate();
+    }
+    else
+    {
+        var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+        db.Database.Migrate();
+    }
 }
 
 // Configure the HTTP request pipeline.
@@ -97,10 +109,12 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<CardDecryptionMiddleware>();
 app.UseMiddleware<ProductVerificationMiddleware>();
 app.UseMiddleware<CartProductVerificationMiddleware>();
+
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapHealthChecks("/health");
+
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
