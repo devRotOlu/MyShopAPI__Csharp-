@@ -29,8 +29,7 @@ namespace MyShopAPI
 
         public static void ConfigureDBContext(this IServiceCollection services, WebApplicationBuilder builder)
         {
-            var environment = builder.Environment.EnvironmentName;
-            if (environment == "Development")
+            if (builder.Environment.IsDevelopment())
             {
                 services.AddDbContext<DatabaseContext>(option =>
                 {
@@ -40,6 +39,7 @@ namespace MyShopAPI
                 var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services);
                 identityBuilder.AddEntityFrameworkStores<DatabaseContext>().AddDefaultTokenProviders();
                 builder.Services.AddScoped<IApplicationDbContext, DatabaseContext>();
+
             }
             else
             {
@@ -51,17 +51,9 @@ namespace MyShopAPI
                 var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services); identityBuilder.AddEntityFrameworkStores<PostgresDatabaseContext>().AddDefaultTokenProviders();
                 builder.Services.AddScoped<IApplicationDbContext, PostgresDatabaseContext>();
             }
-            //services.AddDbContext<PostgresDatabaseContext>(option =>
-            //{
-            //    var environment = builder.Environment.EnvironmentName;
-            //    option.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection"));
-            //    //if (environment == "Development")
-            //    //    option.UseSqlServer(builder.Configuration.GetConnectionString("sqlconnection"));
-            //    //else option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+            Console.WriteLine($"Running in {builder.Environment.EnvironmentName} environment.");
+            Console.WriteLine($"Using {(builder.Environment.IsDevelopment() ? "SQL Server" : "PostgreSQL")} as the database.");
 
-            //    //option.ConfigureWarnings(warnings => warnings.Log(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-            //    option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
-            //});
         }
 
         public static void ConfigureAuthentication(this IServiceCollection services, WebApplicationBuilder builder)
