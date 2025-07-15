@@ -77,6 +77,10 @@
               "target": "Package",
               "version": "[8.0.8, )"
             },
+            "Microsoft.IdentityModel.Protocols": {
+              "target": "Package",
+              "version": "[7.1.2, )"
+            },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
               "version": "[7.1.2, )"
@@ -180,6 +184,10 @@
               "target": "Package",
               "version": "[9.0.7, )"
             },
+            "Microsoft.IdentityModel.Protocols": {
+              "target": "Package",
+              "version": "[7.1.2, )"
+            },
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[8.0.8, )"
@@ -274,6 +282,10 @@
             "Microsoft.Extensions.Options": {
               "target": "Package",
               "version": "[8.0.8, )"
+            },
+            "Microsoft.IdentityModel.Protocols": {
+              "target": "Package",
+              "version": "[7.1.2, )"
             },
             "MimeKit": {
               "target": "Package",
