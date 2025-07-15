@@ -2,126 +2,100 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MyShopAPI;
-using MyShopAPI.Core.AuthManager;
 using MyShopAPI.Core.Configurations;
-using MyShopAPI.Core.EmailMananger;
-using MyShopAPI.Core.IRepository;
-using MyShopAPI.Core.Repository;
 using MyShopAPI.CustomMiddlewares;
 using MyShopAPI.Data;
-using MyShopAPI.Services.Email;
-using MyShopAPI.Services.Image;
-using MyShopAPI.Services.Models;
-using MyShopAPI.Services.Monnify;
-using MyShopAPI.Services.PayStack;
-using Newtonsoft.Json.Converters;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load config
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
     .AddEnvironmentVariables();
 var environment = builder.Environment;
 
-// Add services to the container.
-
+// Service registration
 builder.Services.ConfigureDBContext(builder);
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddControllers()
-    .AddNewtonsoftJson(op =>
-    {
-        op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-        op.SerializerSettings.Converters.Add(new StringEnumConverter());
-    });
-
 builder.Services.ConfigureIdentity();
-
 builder.Services.ConfigureAuthentication(builder);
-
 builder.Services.ConfigureSwagger();
 
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IEmailManager, EmailManager>();
-builder.Services.AddScoped<IAuthManager, AuthManager>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IPhotoService, PhotoService>();
-builder.Services.Configure<SMTPConfig>(builder.Configuration.GetSection("SMTPConfig"));
-builder.Services.AddScoped<IMonnifyService, MonnifyService>();
-builder.Services.AddScoped<IPayStackService, PayStackService>();
-builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
-
-builder.Services.AddAutoMapper(typeof(MapperInitializer));
-
-builder.Services.AddAuthorization();
-
-builder.Services.AddCors(corsOptions =>
+builder.Services.AddControllers().AddNewtonsoftJson(op =>
 {
-    corsOptions.AddPolicy("CorsPolicy", builder =>
+    op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+    op.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+});
+
+// Other services
+builder.Services.AddAutoMapper(typeof(MapperInitializer));
+builder.Services.AddAuthorization();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder =>
     {
         builder.WithOrigins("http://localhost:3000", "https://916d-105-112-178-131.ngrok-free.app")
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
-        //.WithExposedHeaders("X-Origin");
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 });
 
+// Health checks
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy("App is running"))
-    .AddNpgSql(
-        builder.Configuration.GetConnectionString("DefaultConnection")!,
-        name: "PostgreSQL",
-        tags: new[] { "db", "postgres" }
-    );
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!, name: "PostgreSQL");
 
-// Optional: Customize logging level and provider
+// Logging
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole(); // Ensure Console logger is added
+builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
-
-//builder.Services.AddIdentityApiEndpoints<Customer>();
 
 var app = builder.Build();
 
-// Apply migrations only in production (optional)
+// Apply migrations
 using (var scope = app.Services.CreateScope())
 {
-    if (environment.IsProduction())
+    try
     {
-        var db = scope.ServiceProvider.GetRequiredService<PostgresDatabaseContext>();
-        db.Database.Migrate();
+        if (environment.IsProduction())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<PostgresDatabaseContext>();
+            db.Database.Migrate();
+        }
+        else
+        {
+            var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+            db.Database.Migrate();
+        }
     }
-    else
+    catch (Exception ex)
     {
-        var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-        db.Database.Migrate();
+        Console.WriteLine($"Migration error: {ex.Message}");
     }
 }
 
-// Configure the HTTP request pipeline.
+// Configure pipeline
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseDeveloperExceptionPage();
 }
-app.UseCors("CorsPolicy");
-if (!app.Environment.IsProduction())
+else
 {
-    app.UseHttpsRedirection();
+    Console.WriteLine("Running in production — skipping HTTPS redirection.");
 }
 
+app.UseCors("CorsPolicy");
 
-app.UseMiddleware<ExceptionMiddleware>();
-app.UseMiddleware<CardDecryptionMiddleware>();
-app.UseMiddleware<ProductVerificationMiddleware>();
-app.UseMiddleware<CartProductVerificationMiddleware>();
+app.UseWhen(ctx => !ctx.Request.Path.StartsWithSegments("/health"), branch =>
+{
+    branch.UseMiddleware<ExceptionMiddleware>();
+    branch.UseMiddleware<CardDecryptionMiddleware>();
+    branch.UseMiddleware<ProductVerificationMiddleware>();
+    branch.UseMiddleware<CartProductVerificationMiddleware>();
+});
 
 app.UseRouting();
 app.UseAuthentication();
@@ -132,22 +106,28 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = async (context, report) =>
     {
-        context.Response.ContentType = "application/json";
-
-        var result = JsonSerializer.Serialize(new
+        try
         {
-            status = report.Status.ToString(),
-            checks = report.Entries.Select(e => new {
-                component = e.Key,
-                status = e.Value.Status.ToString(),
-                error = e.Value.Exception?.Message
-            }),
-            totalDuration = report.TotalDuration.TotalMilliseconds + "ms"
-        });
-
-        await context.Response.WriteAsync(result);
+            context.Response.ContentType = "application/json";
+            var result = JsonSerializer.Serialize(new
+            {
+                status = report.Status.ToString(),
+                checks = report.Entries.Select(e => new {
+                    component = e.Key,
+                    status = e.Value.Status.ToString(),
+                    error = e.Value.Exception?.Message
+                }),
+                totalDuration = report.TotalDuration.TotalMilliseconds + "ms"
+            });
+            await context.Response.WriteAsync(result);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Health check response error: {ex.Message}");
+            context.Response.StatusCode = 500;
+            await context.Response.WriteAsync("{ \"error\": \"Health check response failed.\" }");
+        }
     }
 });
-
 
 app.Run();
