@@ -7973,7 +7973,6 @@
       "AutoMapper >= 13.0.1",
       "EntityFrameworkCore.Triggered >= 3.2.2",
       "Microsoft.AspNetCore.Identity.EntityFrameworkCore >= 8.0.8",
-      "Microsoft.EntityFrameworkCore >= 8.0.8",
       "Microsoft.EntityFrameworkCore.SqlServer >= 8.0.8",
       "Microsoft.EntityFrameworkCore.Tools >= 8.0.8",
       "MyShopAPI.Data >= 1.0.0",
@@ -8047,10 +8046,6 @@
             "version": "[3.2.2, )"
           },
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
-            "target": "Package",
-            "version": "[8.0.8, )"
-          },
-          "Microsoft.EntityFrameworkCore": {
             "target": "Package",
             "version": "[8.0.8, )"
           },

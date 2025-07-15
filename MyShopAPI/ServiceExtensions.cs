@@ -6,7 +6,6 @@ using Microsoft.OpenApi.Models;
 using MyShopAPI.Data;
 using MyShopAPI.Data.ApplicationDBContext;
 using MyShopAPI.Data.Entities;
-using PaypalServerSdk.Standard.Models;
 using System.Text;
 
 namespace MyShopAPI
