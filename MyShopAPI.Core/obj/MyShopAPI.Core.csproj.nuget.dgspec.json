@@ -81,6 +81,10 @@
               "target": "Package",
               "version": "[7.1.2, )"
             },
+            "Microsoft.IdentityModel.Protocols.OpenIdConnect": {
+              "target": "Package",
+              "version": "[7.1.2, )"
+            },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
               "version": "[7.1.2, )"
@@ -188,6 +192,10 @@
               "target": "Package",
               "version": "[7.1.2, )"
             },
+            "Microsoft.IdentityModel.Protocols.OpenIdConnect": {
+              "target": "Package",
+              "version": "[7.1.2, )"
+            },
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[8.0.8, )"
@@ -284,6 +292,10 @@
               "version": "[8.0.8, )"
             },
             "Microsoft.IdentityModel.Protocols": {
+              "target": "Package",
+              "version": "[7.1.2, )"
+            },
+            "Microsoft.IdentityModel.Protocols.OpenIdConnect": {
               "target": "Package",
               "version": "[7.1.2, )"
             },
