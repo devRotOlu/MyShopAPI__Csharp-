@@ -18,6 +18,16 @@ var environment = builder.Environment;
 // Service registration
 builder.Services.ConfigureDBContext(builder);
 builder.Services.ConfigureIdentity();
+try
+{
+    var test = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken();
+    Console.WriteLine("Successfully instantiated JwtSecurityToken. Version seems correct.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"JwtSecurityToken instantiation failed: {ex.Message}");
+}
+
 builder.Services.ConfigureAuthentication(builder);
 builder.Services.ConfigureSwagger();
 
