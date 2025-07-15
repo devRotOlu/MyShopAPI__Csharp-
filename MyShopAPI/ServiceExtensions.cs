@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using MyShopAPI.Data;
 using MyShopAPI.Data.ApplicationDBContext;
 using MyShopAPI.Data.Entities;
+using PaypalServerSdk.Standard.Models;
 using System.Text;
 
 namespace MyShopAPI
@@ -58,6 +59,8 @@ namespace MyShopAPI
 
         public static void ConfigureAuthentication(this IServiceCollection services, WebApplicationBuilder builder)
         {
+            var _ = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken();
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
