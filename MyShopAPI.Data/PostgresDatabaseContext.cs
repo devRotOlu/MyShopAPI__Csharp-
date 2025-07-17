@@ -46,6 +46,16 @@ namespace MyShopAPI.Data
               .UseIdentityColumn()
               .ValueGeneratedOnAdd()
               .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            builder.Entity<Cart>()
+               .ToTable(tb => tb.HasTrigger("SomeTrigger"))
+               .Property(cart => cart.Id)
+               .UseIdentityColumn()
+               .ValueGeneratedOnAdd()
+               .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            builder.Entity<ProductReview>()
+                .ToTable(tb => tb.HasTrigger("SomeTrigger"));
         }
     }
 

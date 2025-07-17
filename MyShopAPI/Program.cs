@@ -2,9 +2,18 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MyShopAPI;
+using MyShopAPI.Core.AuthManager;
 using MyShopAPI.Core.Configurations;
+using MyShopAPI.Core.EmailMananger;
+using MyShopAPI.Core.IRepository;
+using MyShopAPI.Core.Repository;
 using MyShopAPI.CustomMiddlewares;
 using MyShopAPI.Data;
+using MyShopAPI.Services.Email;
+using MyShopAPI.Services.Image;
+using MyShopAPI.Services.Models;
+using MyShopAPI.Services.Monnify;
+using MyShopAPI.Services.PayStack;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,15 +27,7 @@ var environment = builder.Environment;
 // Service registration
 builder.Services.ConfigureDBContext(builder);
 builder.Services.ConfigureIdentity();
-try
-{
-    var test = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken();
-    Console.WriteLine("Successfully instantiated JwtSecurityToken. Version seems correct.");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"JwtSecurityToken instantiation failed: {ex.Message}");
-}
+
 
 builder.Services.ConfigureAuthentication(builder);
 builder.Services.ConfigureSwagger();
@@ -44,7 +45,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins("http://localhost:3000", "https://916d-105-112-178-131.ngrok-free.app")
+        builder.WithOrigins("maishop.netlify.app")
                .AllowAnyMethod()
                .AllowAnyHeader()
                .AllowCredentials();
@@ -56,6 +57,16 @@ builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy("App is running"))
     .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!, name: "PostgreSQL");
 
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPhotoService, PhotoService>();
+builder.Services.Configure<SMTPConfig>(builder.Configuration.GetSection("SMTPConfig"));
+builder.Services.AddScoped<IMonnifyService, MonnifyService>();
+builder.Services.AddScoped<IPayStackService, PayStackService>();
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAuthManager,AuthManager>();
+builder.Services.AddScoped<IEmailManager, EmailManager>();
+
 // Logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -66,22 +77,15 @@ var app = builder.Build();
 // Apply migrations
 using (var scope = app.Services.CreateScope())
 {
-    try
+    if (environment.IsProduction())
     {
-        if (environment.IsProduction())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<PostgresDatabaseContext>();
-            db.Database.Migrate();
-        }
-        else
-        {
-            var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-            db.Database.Migrate();
-        }
+        var db = scope.ServiceProvider.GetRequiredService<PostgresDatabaseContext>();
+        db.Database.Migrate();
     }
-    catch (Exception ex)
+    else
     {
-        Console.WriteLine($"Migration error: {ex.Message}");
+        var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+        db.Database.Migrate();
     }
 }
 
@@ -111,32 +115,25 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/", () => "Welcome to my API!");
+
 app.MapControllers();
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = async (context, report) =>
     {
-        try
+        context.Response.ContentType = "application/json";
+        var result = JsonSerializer.Serialize(new
         {
-            context.Response.ContentType = "application/json";
-            var result = JsonSerializer.Serialize(new
-            {
-                status = report.Status.ToString(),
-                checks = report.Entries.Select(e => new {
-                    component = e.Key,
-                    status = e.Value.Status.ToString(),
-                    error = e.Value.Exception?.Message
-                }),
-                totalDuration = report.TotalDuration.TotalMilliseconds + "ms"
-            });
-            await context.Response.WriteAsync(result);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Health check response error: {ex.Message}");
-            context.Response.StatusCode = 500;
-            await context.Response.WriteAsync("{ \"error\": \"Health check response failed.\" }");
-        }
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new {
+                component = e.Key,
+                status = e.Value.Status.ToString(),
+                error = e.Value.Exception?.Message
+            }),
+            totalDuration = report.TotalDuration.TotalMilliseconds + "ms"
+        });
+        await context.Response.WriteAsync(result);
     }
 });
 

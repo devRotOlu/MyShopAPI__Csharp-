@@ -51,8 +51,6 @@ namespace MyShopAPI
                 var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services); identityBuilder.AddEntityFrameworkStores<PostgresDatabaseContext>().AddDefaultTokenProviders();
                 builder.Services.AddScoped<IApplicationDbContext, PostgresDatabaseContext>();
             }
-            Console.WriteLine($"Running in {builder.Environment.EnvironmentName} environment.");
-            Console.WriteLine($"Using {(builder.Environment.IsDevelopment() ? "SQL Server" : "PostgreSQL")} as the database.");
 
         }
 
