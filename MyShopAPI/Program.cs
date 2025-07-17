@@ -101,7 +101,6 @@ else
     Console.WriteLine("Running in production — skipping HTTPS redirection.");
 }
 
-app.UseCors("CorsPolicy");
 
 app.UseWhen(ctx => !ctx.Request.Path.StartsWithSegments("/health"), branch =>
 {
@@ -112,6 +111,7 @@ app.UseWhen(ctx => !ctx.Request.Path.StartsWithSegments("/health"), branch =>
 });
 
 app.UseRouting();
+app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
