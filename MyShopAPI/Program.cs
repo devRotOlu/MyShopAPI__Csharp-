@@ -45,7 +45,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins("maishop.netlify.app")
+        builder.WithOrigins("https://maishop.netlify.app/")
                .AllowAnyMethod()
                .AllowAnyHeader()
                .AllowCredentials();
