@@ -51,6 +51,7 @@ namespace MyShopAPI
                 var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services); identityBuilder.AddEntityFrameworkStores<PostgresDatabaseContext>().AddDefaultTokenProviders();
                 builder.Services.AddScoped<IApplicationDbContext, PostgresDatabaseContext>();
             }
+  
 
         }
 

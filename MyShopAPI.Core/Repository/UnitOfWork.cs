@@ -1,5 +1,4 @@
 ﻿using MyShopAPI.Core.IRepository;
-using MyShopAPI.Data;
 using MyShopAPI.Data.ApplicationDBContext;
 using MyShopAPI.Data.Entities;
 using OtherAttribute = MyShopAPI.Data.Entities.Attribute;
@@ -23,7 +22,7 @@ namespace MyShopAPI.Core.Repository
         public IGenericRepository<OtherAttribute> Attributes { get; set; }
         public IGenericRepository<ProductAttribute> ProductAttributes { get; set; }
 
-        public UnitOfWork(DatabaseContext databaseContext)
+        public UnitOfWork(IApplicationDbContext databaseContext)
         {
             Customers = new GenericRepository<Customer>(databaseContext);
             Carts = new GenericRepository<Cart>(databaseContext);
