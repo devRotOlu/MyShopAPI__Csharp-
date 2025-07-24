@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MyShopAPI.Services.ServiceOptions;
 
 namespace MyShopAPI.Services.Email
@@ -8,10 +9,12 @@ namespace MyShopAPI.Services.Email
         const string templatePath = @"EmailTemplate/{0}.html";
 
         private readonly IConfiguration _configuration;
+        private readonly ILogger<EmailService> _logger;
 
-        public EmailService(IConfiguration configuration)
+        public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task SendEmailForEmailConfirmation(UserEmailOptions userEmailOptions, bool isEmailConfirmPage)
@@ -78,14 +81,29 @@ namespace MyShopAPI.Services.Email
                 html = userEmailOptions.Body
             };
 
-            // Serialize payload to JSON
-            var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+            try
+            {
+                // Serialize payload to JSON
+                var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
 
-            // Send POST request
-            var response = await httpClient.PostAsync(requestUri, content);
+                // Send POST request
+                var response = await httpClient.PostAsync(requestUri, content);
 
-            // Read response body
-            var responseBody = await response.Content.ReadAsStringAsync();
+                // Read response body
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                _logger.LogInformation("Resend Response: {0}-{1}",response.StatusCode,responseBody);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Email failed. Status: {StatusCode}, Reason: {Body}", response.StatusCode, responseBody);
+                }
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError(ex, "Exception while trying to send email");
+            }
         }
 
     }
