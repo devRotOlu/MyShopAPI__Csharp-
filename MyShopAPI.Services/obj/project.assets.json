@@ -1304,6 +1304,22 @@
           }
         }
       },
+      "Resend/0.1.4": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Options": "8.0.0"
+        },
+        "compile": {
+          "lib/net8.0/Resend.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Resend.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {
         "type": "package",
         "runtimeTargets": {
@@ -4663,6 +4679,21 @@
         "portable.bouncycastle.nuspec"
       ]
     },
+    "Resend/0.1.4": {
+      "sha512": "9xwswCqM/sobXjLn7gQyjuFbc7Im3Gb22TAaVi6agkhJM83cIA18nMGAZL6t41+644gw8tXfbRcqmzOAM2+tlQ==",
+      "type": "package",
+      "path": "resend/0.1.4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net8.0/Resend.dll",
+        "lib/net8.0/Resend.xml",
+        "resend.0.1.4.nupkg.sha512",
+        "resend.nuspec"
+      ]
+    },
     "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {
       "sha512": "7VSGO0URRKoMEAq0Sc9cRz8mb6zbyx/BZDEWhgPdzzpmFhkam3fJ1DAGWFXBI4nGlma+uPKpfuMQP5LXRnOH5g==",
       "type": "package",
@@ -7808,6 +7839,7 @@
       "PayPalServerSDK >= 0.6.1",
       "Paystack.Net >= 1.1.1",
       "Portable.BouncyCastle >= 1.9.0",
+      "Resend >= 0.1.4",
       "System.IdentityModel.Tokens.Jwt >= 7.1.2"
     ]
   },
@@ -7904,6 +7936,10 @@
           "Portable.BouncyCastle": {
             "target": "Package",
             "version": "[1.9.0, )"
+          },
+          "Resend": {
+            "target": "Package",
+            "version": "[0.1.4, )"
           },
           "System.IdentityModel.Tokens.Jwt": {
             "target": "Package",

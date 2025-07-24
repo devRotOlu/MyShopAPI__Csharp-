@@ -7,6 +7,7 @@ using MyShopAPI.Core.DTOs.UserDTOs;
 using MyShopAPI.Core.EmailMananger;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
+using MyShopAPI.Services.Email;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -23,7 +24,7 @@ namespace MyShopAPI.Core.AuthManager
         private readonly IEmailManager _emailManager;
 
 
-        public AuthManager(UserManager<Customer> userManager, IConfiguration configuration, IEmailManager emailManager, SignInManager<Customer> signInManager)
+        public AuthManager(UserManager<Customer> userManager, IConfiguration configuration, SignInManager<Customer> signInManager, IEmailManager emailManager)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -124,7 +125,7 @@ namespace MyShopAPI.Core.AuthManager
 
         private async Task<IDictionary<string, object>> GetClaims(string email)
         {
-            var user  = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.FindByEmailAsync(email);
             var claims = new Dictionary<string, object>();
             claims.Add(ClaimTypes.Name, user!.UserName!);
             claims.Add(JwtRegNamesCalims.Aud, _configuration["Jwt:Issuer"]!);
@@ -221,7 +222,6 @@ namespace MyShopAPI.Core.AuthManager
             };
 
             var tokenHandler = new JsonWebTokenHandler();
-            //var securityToken = tokenHandler.ReadToken(accessToken);
             return await tokenHandler.ValidateTokenAsync(accessToken, validationParameters);
         }
 

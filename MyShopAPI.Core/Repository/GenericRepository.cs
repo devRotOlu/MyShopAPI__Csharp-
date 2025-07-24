@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore.Query;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Models;
-using MyShopAPI.Data;
 using MyShopAPI.Data.ApplicationDBContext;
 using System.Linq.Expressions;
 using X.PagedList;

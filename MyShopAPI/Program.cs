@@ -14,6 +14,7 @@ using MyShopAPI.Services.Image;
 using MyShopAPI.Services.Models;
 using MyShopAPI.Services.Monnify;
 using MyShopAPI.Services.PayStack;
+using Resend;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,7 +31,11 @@ builder.Services.ConfigureIdentity();
 
 
 builder.Services.ConfigureAuthentication(builder);
-builder.Services.ConfigureSwagger();
+
+if (environment.IsDevelopment())
+{
+    builder.Services.ConfigureSwagger();
+}
 
 builder.Services.AddControllers().AddNewtonsoftJson(op =>
 {
@@ -59,13 +64,13 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
-builder.Services.Configure<SMTPConfig>(builder.Configuration.GetSection("SMTPConfig"));
 builder.Services.AddScoped<IMonnifyService, MonnifyService>();
 builder.Services.AddScoped<IPayStackService, PayStackService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IAuthManager,AuthManager>();
+builder.Services.AddScoped<IAuthManager, AuthManager>();
 builder.Services.AddScoped<IEmailManager, EmailManager>();
+
 
 // Logging
 builder.Logging.ClearProviders();
@@ -96,10 +101,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-else
-{
-    Console.WriteLine("Running in production — skipping HTTPS redirection.");
-}
 
 
 app.UseWhen(ctx => !ctx.Request.Path.StartsWithSegments("/health"), branch =>
@@ -126,7 +127,8 @@ app.MapHealthChecks("/health", new HealthCheckOptions
         var result = JsonSerializer.Serialize(new
         {
             status = report.Status.ToString(),
-            checks = report.Entries.Select(e => new {
+            checks = report.Entries.Select(e => new
+            {
                 component = e.Key,
                 status = e.Value.Status.ToString(),
                 error = e.Value.Exception?.Message

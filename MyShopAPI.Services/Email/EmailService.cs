@@ -1,9 +1,4 @@
-﻿using MailKit.Net.Smtp;
-using MailKit.Security;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using MimeKit.Text;
-using MyShopAPI.Services.Models;
+﻿using Microsoft.Extensions.Configuration;
 using MyShopAPI.Services.ServiceOptions;
 
 namespace MyShopAPI.Services.Email
@@ -12,12 +7,13 @@ namespace MyShopAPI.Services.Email
     {
         const string templatePath = @"EmailTemplate/{0}.html";
 
-        private readonly SMTPConfig _smtpConfig;
+        private readonly IConfiguration _configuration;
 
-        public EmailService(IOptions<SMTPConfig> smtpConfig)
+        public EmailService(IConfiguration configuration)
         {
-            _smtpConfig = smtpConfig.Value;
+            _configuration = configuration;
         }
+
         public async Task SendEmailForEmailConfirmation(UserEmailOptions userEmailOptions, bool isEmailConfirmPage)
         {
             userEmailOptions.Subject = "Confirmation of email Id";
@@ -36,6 +32,7 @@ namespace MyShopAPI.Services.Email
             var templateName = isResetPasswordPage ? "ForgetPasswordPage" : "ForgetPasswordTest";
 
             userEmailOptions.Body = UpdatePlaceholders(GetEmailBody(templateName), userEmailOptions.PlaceHolders);
+
 
             await SendEmail(userEmailOptions);
         }
@@ -65,27 +62,31 @@ namespace MyShopAPI.Services.Email
 
         private async Task SendEmail(UserEmailOptions userEmailOptions)
         {
-            var emailMessage = new MimeMessage();
+            using var httpClient = new HttpClient();
 
-            emailMessage.From.Add(new MailboxAddress(_smtpConfig.SenderName, _smtpConfig!.SenderEmail));
-            emailMessage.Subject = userEmailOptions.Subject;
-            emailMessage.Body = new TextPart(TextFormat.Html) { Text = userEmailOptions.Body };
+            // Set API endpoint
+            var requestUri = "https://api.resend.com/emails";
 
-            foreach (var toEmail in userEmailOptions.ToEmails)
+            // Set headers
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _configuration["ResendConfig:APIToken"]);
+            // Compose email payload
+            var payload = new
             {
-                emailMessage.To.Add(new MailboxAddress("", toEmail));
-            }
+                from = _configuration["ResendConfig:senderAddress"],
+                to = userEmailOptions.ToEmails,
+                subject = userEmailOptions.Subject,
+                html = userEmailOptions.Body
+            };
 
-            using (var smtp = new SmtpClient())
-            {
-                smtp.ServerCertificateValidationCallback = (s, c, h, e) => true;
-                await smtp.ConnectAsync(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, _smtpConfig.UseSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
-                //await smtp.ConnectAsync(_smtpConfig.SmtpServer, _smtpConfig.SmtpPort, SecureSocketOptions.SslOnConnect);
-                await smtp.AuthenticateAsync(_smtpConfig.SenderEmail, _smtpConfig.Password);
-                await smtp.SendAsync(emailMessage);
-                await smtp.DisconnectAsync(true);
-            }
+            // Serialize payload to JSON
+            var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
 
+            // Send POST request
+            var response = await httpClient.PostAsync(requestUri, content);
+
+            // Read response body
+            var responseBody = await response.Content.ReadAsStringAsync();
         }
+
     }
 }

@@ -951,6 +951,17 @@
           }
         }
       },
+      "Resend/0.1.4": {
+        "dependencies": {
+          "Microsoft.Extensions.Options": "9.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Resend.dll": {
+            "assemblyVersion": "0.1.4.0",
+            "fileVersion": "0.1.4.0"
+          }
+        }
+      },
       "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {},
       "runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {},
       "runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {},
@@ -1657,6 +1668,7 @@
           "PayPalServerSDK": "0.6.1",
           "Paystack.Net": "1.1.1",
           "Portable.BouncyCastle": "1.9.0",
+          "Resend": "0.1.4",
           "System.IdentityModel.Tokens.Jwt": "7.1.2"
         },
         "runtime": {
@@ -2163,6 +2175,13 @@
       "sha512": "sha512-eZZBCABzVOek+id9Xy04HhmgykF0wZg9wpByzrWN7q8qEI0Qen9b7tfd7w8VA3dOeesumMG7C5ZPy0jk7PSRHw==",
       "path": "portable.bouncycastle/1.9.0",
       "hashPath": "portable.bouncycastle.1.9.0.nupkg.sha512"
+    },
+    "Resend/0.1.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-9xwswCqM/sobXjLn7gQyjuFbc7Im3Gb22TAaVi6agkhJM83cIA18nMGAZL6t41+644gw8tXfbRcqmzOAM2+tlQ==",
+      "path": "resend/0.1.4",
+      "hashPath": "resend.0.1.4.nupkg.sha512"
     },
     "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {
       "type": "package",

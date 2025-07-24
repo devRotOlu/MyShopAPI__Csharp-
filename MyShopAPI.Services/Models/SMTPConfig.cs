@@ -1,6 +1,6 @@
 ﻿namespace MyShopAPI.Services.Models
 {
-    public class SMTPConfig
+    public class ResendConfig
     {
         public string SenderEmail { get; set; } = null!;
 

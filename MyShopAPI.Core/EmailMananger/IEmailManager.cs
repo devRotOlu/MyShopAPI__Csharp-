@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using MyShopAPI.Data.Entities;
+﻿using MyShopAPI.Data.Entities;
 
 namespace MyShopAPI.Core.EmailMananger
 {

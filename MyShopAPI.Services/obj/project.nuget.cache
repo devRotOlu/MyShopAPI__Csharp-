@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "shfV9+quobg=",
+  "dgSpecHash": "v5bVWrC5bQk=",
   "success": true,
   "projectFilePath": "C:\\Users\\HP\\Desktop\\CSharpProject\\MyShopAPISolution\\MyShopAPI.Services\\MyShopAPI.Services.csproj",
   "expectedPackageFiles": [
@@ -71,6 +71,7 @@
     "C:\\Users\\HP\\.nuget\\packages\\paystack.net\\1.1.1\\paystack.net.1.1.1.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\polly\\7.2.3\\polly.7.2.3.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\portable.bouncycastle\\1.9.0\\portable.bouncycastle.1.9.0.nupkg.sha512",
+    "C:\\Users\\HP\\.nuget\\packages\\resend\\0.1.4\\resend.0.1.4.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\runtime.debian.8-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.debian.8-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\runtime.fedora.23-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.fedora.23-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\runtime.fedora.24-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.fedora.24-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",

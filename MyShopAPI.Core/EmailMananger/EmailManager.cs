@@ -26,7 +26,7 @@ namespace MyShopAPI.Core.EmailMananger
             {
                 ToEmails = new List<string>()
                 {
-                    user.Email
+                    user.Email!
                 },
 
                 PlaceHolders = new List<KeyValuePair<string, string>>()
@@ -44,6 +44,8 @@ namespace MyShopAPI.Core.EmailMananger
             await _emailService.SendEmailForEmailConfirmation(options, isEmailConfirmPage);
         }
 
+
+
         public async Task SendForgotPasswordEmail(Customer user, string token, string memberFirstName, string? passwordResetLink = null)
         {
             string userId = "?id={0}&token={1}";
@@ -52,7 +54,7 @@ namespace MyShopAPI.Core.EmailMananger
             {
                 ToEmails = new List<string>()
                 {
-                    user.Email
+                    user.Email!
                 },
 
                 PlaceHolders = new List<KeyValuePair<string, string>>()
@@ -63,6 +65,7 @@ namespace MyShopAPI.Core.EmailMananger
                     new KeyValuePair<string, string>("{{UserID}}",user.Id),
                 }
             };
+
 
             var isResetPasswordPage = !string.IsNullOrEmpty(passwordResetLink);
 
