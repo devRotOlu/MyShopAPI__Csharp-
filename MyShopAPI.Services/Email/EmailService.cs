@@ -6,8 +6,6 @@ namespace MyShopAPI.Services.Email
 {
     public class EmailService : IEmailService
     {
-        const string templatePath = @"EmailTemplate/{0}.html";
-
         private readonly IConfiguration _configuration;
         private readonly ILogger<EmailService> _logger;
 
@@ -58,7 +56,18 @@ namespace MyShopAPI.Services.Email
 
         private string GetEmailBody(string templateName)
         {
-            var body = File.ReadAllText(string.Format(templatePath, templateName));
+            const string templatePath = @"EmailTemplate/{0}.html";
+
+            // Get the full runtime path
+            var basePath = AppContext.BaseDirectory;
+
+            var fullPath = Path.Combine(basePath, string.Format(templatePath, templateName));
+
+            _logger.LogInformation("Started Reading html file");
+
+            var body = File.ReadAllText(fullPath);
+
+            _logger.LogInformation("Finished Reading html file");
 
             return body;
         }
@@ -92,7 +101,7 @@ namespace MyShopAPI.Services.Email
                 // Read response body
                 var responseBody = await response.Content.ReadAsStringAsync();
 
-                _logger.LogInformation("Resend Response: {0}-{1}",response.StatusCode,responseBody);
+                _logger.LogInformation("Resend Response: {0}-{1}", response.StatusCode, responseBody);
 
                 if (!response.IsSuccessStatusCode)
                 {

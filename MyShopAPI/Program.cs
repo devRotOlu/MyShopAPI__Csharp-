@@ -14,7 +14,6 @@ using MyShopAPI.Services.Image;
 using MyShopAPI.Services.Models;
 using MyShopAPI.Services.Monnify;
 using MyShopAPI.Services.PayStack;
-using Resend;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -102,6 +101,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles();
 
 app.UseWhen(ctx => !ctx.Request.Path.StartsWithSegments("/health"), branch =>
 {

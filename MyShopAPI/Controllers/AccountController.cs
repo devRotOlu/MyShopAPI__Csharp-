@@ -7,6 +7,7 @@ using MyShopAPI.Core.DTOs.UserDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Core.Models;
 using MyShopAPI.Data.Entities;
+using MyShopAPI.Helpers;
 
 namespace MyShopAPI.Controllers
 {
@@ -57,7 +58,9 @@ namespace MyShopAPI.Controllers
 
             try
             {
-                await _authManager.GenerateEmailConfirmationTokenAsync(user, signUpDTO.FirstName, _configuration["EmailConfirmation"]);
+                var clientURL = Request.GetClientURL(_configuration["EmailConfirmation"]!);
+
+                await _authManager.GenerateEmailConfirmationTokenAsync(user, signUpDTO.FirstName,clientURL);
             }
             catch
             {
@@ -118,7 +121,10 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            await _authManager.GenerateEmailConfirmationTokenAsync(user, user.Details.FirstName, _configuration["AcctValidationEmail"]);
+            var clientURL = Request.GetClientURL(_configuration["EmailConfirmation"]!);
+
+            await _authManager.GenerateEmailConfirmationTokenAsync(user, user.Details.FirstName,clientURL);
+
             return Ok("Check your email for validation.");
         }
 
@@ -202,16 +208,9 @@ namespace MyShopAPI.Controllers
                 return Forbid();
             }
 
-            var clientType = Request.Headers["X-Client-Type"].FirstOrDefault()?.ToLower();
+            var clientURL = Request.GetClientURL(_configuration["PasswordResetRoute"]!);
 
-            string? rootUrl = null;
-
-            if (clientType == "web")
-            {
-                rootUrl = $"{Request.Headers["X-Origin"].ToString()}{_configuration["PasswordResetRoute"]}";
-            }
-
-            await _authManager.GenerateForgotPasswordTokenAsync(user, user.Details.FirstName, rootUrl);
+            await _authManager.GenerateForgotPasswordTokenAsync(user, user.Details.FirstName,clientURL);
 
             return NoContent();
         }
