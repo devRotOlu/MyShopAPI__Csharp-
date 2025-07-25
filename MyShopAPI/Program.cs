@@ -101,7 +101,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();
+//app.UseStaticFiles();
 
 app.UseWhen(ctx => !ctx.Request.Path.StartsWithSegments("/health"), branch =>
 {
