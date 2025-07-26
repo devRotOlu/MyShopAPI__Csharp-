@@ -7,20 +7,7 @@
     <UserSecretsId>d085a0e1-ec2b-4d31-ba8e-6ba5b5080019</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
-	<EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
-
-	<ItemGroup>
-		<Content Include="appsettings.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
-		</Content>
-		<Content Include="appsettings.Production.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
-		</Content>
-	</ItemGroup>
-
 
 	<ItemGroup>
 		<Content Include="EmailTemplate\**\*.html">
