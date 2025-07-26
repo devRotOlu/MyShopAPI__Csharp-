@@ -121,7 +121,7 @@ namespace MyShopAPI.Core.AuthManager
 
         private SigningCredentials GetSigningCredentials()
         {
-            var key = _configuration.GetSection("Jwt")["key"];
+            var key = _configuration.GetValue<string>("Jwt:key");
 
             var secret = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!));
 
@@ -133,7 +133,7 @@ namespace MyShopAPI.Core.AuthManager
             var user = await _userManager.FindByEmailAsync(email);
             var claims = new Dictionary<string, object>();
             claims.Add(ClaimTypes.Name, user!.UserName!);
-            claims.Add(JwtRegNamesCalims.Aud, _configuration.GetSection("Jwt")["Issuer"]!);
+            claims.Add(JwtRegNamesCalims.Aud, _configuration.GetValue<string>("Jwt:Issuer")!);
 
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -147,16 +147,15 @@ namespace MyShopAPI.Core.AuthManager
 
         private SecurityTokenDescriptor GenerateTokenOptions(SigningCredentials signingCredentials, IDictionary<string, object> claims)
         {
-            var jwtSettings = _configuration.GetSection("Jwt");
 
-            var tokenLifetime = Convert.ToDouble(jwtSettings["Lifetime"]);
+            var tokenLifetime = Convert.ToDouble(_configuration.GetValue<string>("Jwt:Lifetime"));
 
             var tokenExpirationTime = DateTime.Now.AddMinutes(tokenLifetime);
 
             var token = new SecurityTokenDescriptor
             {
-                Issuer = jwtSettings["Issuer"],
-                Audience = jwtSettings["Issuer"],
+                Issuer = _configuration.GetValue<string>("Jwt:Issuer"),
+                Audience = _configuration.GetValue<string>("Jwt:Issuer"),
                 Claims = claims,
                 Expires = tokenExpirationTime,
                 SigningCredentials = signingCredentials
@@ -184,7 +183,7 @@ namespace MyShopAPI.Core.AuthManager
 
         public void SetTokenInCookies(Tokens tokens, HttpContext context)
         {
-            var accessTokenLifetime = Convert.ToDouble(_configuration.GetSection("Jwt")["Lifetime"]);
+            var accessTokenLifetime = Convert.ToDouble(_configuration.GetValue<int>("Jwt:Lifetime"));
 
             var accesstokenExpirationTime = DateTime.Now.AddMinutes(accessTokenLifetime);
 
@@ -197,7 +196,8 @@ namespace MyShopAPI.Core.AuthManager
                 Expires = accesstokenExpirationTime
             });
 
-            var refreshTokenLifetime = Convert.ToDouble(_configuration.GetSection("RefreshToken")["Lifetime"]);
+            var refreshTokenLifetime = Convert.ToDouble(_configuration.GetValue<int>("RefreshToken:Lifetime"
+                ));
 
             var refreshtokenExpirationTime = DateTime.Now.AddMinutes(refreshTokenLifetime);
             context.Response.Cookies.Append("RefreshToken", tokens.RefreshToken!, new CookieOptions
@@ -211,17 +211,15 @@ namespace MyShopAPI.Core.AuthManager
         public async Task<TokenValidationResult> ValidateToken(string accessToken)
         {
 
-            var jwtSettings = _configuration.GetSection("Jwt");
-
-            var key = jwtSettings["key"];
+            var key = _configuration.GetValue<string>("Jwt:key");
 
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = false,
-                ValidAudience = jwtSettings["Issuer"],
+                ValidAudience = _configuration.GetValue<string>("Jwt:Issuer"),
                 ValidateLifetime = true,
-                ValidIssuer = jwtSettings["Issuer"],
+                ValidIssuer = _configuration.GetValue<string>("Jwt:Issuer"),
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!)),
                 RequireExpirationTime = true,
