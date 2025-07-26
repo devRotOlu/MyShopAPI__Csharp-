@@ -49,7 +49,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins("https://maishop.netlify.app")
+        builder.WithOrigins("https://maishop.netlify.app", "http://localhost:3000")
                .AllowAnyMethod()
                .AllowAnyHeader()
                .AllowCredentials();

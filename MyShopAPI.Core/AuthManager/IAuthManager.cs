@@ -20,7 +20,7 @@ namespace MyShopAPI.Core.AuthManager
         Task<IdentityResult> CreateAsync(Customer appUser, string password);
         Task<IdentityResult> AddToRolesAsync(Customer appUser, IEnumerable<string> roles);
         Task<Customer?> GetUserByPrincipalClaimsAsync(ClaimsPrincipal user);
-        Task<IdentityResult> ConfirmEmailAsync(string uid, string token);
+        Task<bool> ConfirmEmailAsync(string uid, string token);
         Task<Customer?> GetUserByIdAsync(string id);
         string GenerateRefreshToken();
         void SetTokenInCookies(Tokens tokens, HttpContext context);

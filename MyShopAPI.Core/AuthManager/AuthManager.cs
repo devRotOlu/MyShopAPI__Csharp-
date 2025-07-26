@@ -38,11 +38,17 @@ namespace MyShopAPI.Core.AuthManager
             return await _userManager.AddToRolesAsync(appUser, roles);
         }
 
-        public async Task<IdentityResult> ConfirmEmailAsync(string uid, string token)
+        public async Task<bool> ConfirmEmailAsync(string uid, string token)
         {
             var user = await _userManager.FindByIdAsync(uid);
+
+            if (user == null || user.EmailConfirmed) return false;
+
             var decodedToken = Base64UrlEncoder.Decode(token);
-            return await _userManager.ConfirmEmailAsync(user, decodedToken);
+
+            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+
+            return result.Succeeded;
         }
 
         public async Task<IdentityResult> CreateAsync(Customer appUser, string password)

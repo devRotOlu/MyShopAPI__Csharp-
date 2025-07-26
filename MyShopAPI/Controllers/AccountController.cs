@@ -89,14 +89,9 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ConfirmUserEmail([FromQuery] string uid, [FromQuery] string token)
         {
-            if (string.IsNullOrEmpty(uid) || string.IsNullOrEmpty(token))
-            {
-                return BadRequest();
-            }
+            var isEmailConfirmed = await _authManager.ConfirmEmailAsync(uid, token);
 
-            var result = await _authManager.ConfirmEmailAsync(uid, token);
-
-            if (result.Succeeded)
+            if (isEmailConfirmed)
             {
                 return Ok();
             }
