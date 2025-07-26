@@ -150,7 +150,7 @@ namespace MyShopAPI.Core.AuthManager
 
             var tokenLifetime = Convert.ToDouble(_configuration.GetValue<string>("Jwt:Lifetime"));
 
-            var tokenExpirationTime = DateTime.Now.AddMinutes(tokenLifetime);
+            var tokenExpirationTime = DateTime.UtcNow.AddMinutes(tokenLifetime);
 
             var token = new SecurityTokenDescriptor
             {
@@ -185,7 +185,7 @@ namespace MyShopAPI.Core.AuthManager
         {
             var accessTokenLifetime = Convert.ToDouble(_configuration.GetValue<int>("Jwt:Lifetime"));
 
-            var accesstokenExpirationTime = DateTime.Now.AddMinutes(accessTokenLifetime);
+            var accesstokenExpirationTime = DateTime.UtcNow.AddMinutes(accessTokenLifetime);
 
             context.Response.Cookies.Append("accessToken", tokens.AccessToken!, new CookieOptions
             {
@@ -199,7 +199,7 @@ namespace MyShopAPI.Core.AuthManager
             var refreshTokenLifetime = Convert.ToDouble(_configuration.GetValue<int>("RefreshToken:Lifetime"
                 ));
 
-            var refreshtokenExpirationTime = DateTime.Now.AddMinutes(refreshTokenLifetime);
+            var refreshtokenExpirationTime = DateTime.UtcNow.AddMinutes(refreshTokenLifetime);
             context.Response.Cookies.Append("RefreshToken", tokens.RefreshToken!, new CookieOptions
             {
                 HttpOnly = true,

@@ -166,7 +166,7 @@ namespace MyShopAPI.Controllers
                     Id = refreshTokenObj.Id,
                     CustomerId = customer.Id,
                     Token = refreshToken,
-                    ExpirationTime = DateTime.Now.AddMinutes(Convert.ToDouble(expirationTime))
+                    ExpirationTime = DateTime.UtcNow.AddMinutes(Convert.ToDouble(expirationTime))
                 });
             }
             else
@@ -175,7 +175,7 @@ namespace MyShopAPI.Controllers
                 {
                     CustomerId = customer.Id,
                     Token = refreshToken,
-                    ExpirationTime = DateTime.Now.AddMinutes(Convert.ToDouble(expirationTime))
+                    ExpirationTime = DateTime.UtcNow.AddMinutes(Convert.ToDouble(expirationTime))
                 });
             }
 
