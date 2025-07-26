@@ -19,14 +19,17 @@ using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: false)
     .AddEnvironmentVariables();
 var environment = builder.Environment;
 
 // Service registration
 builder.Services.ConfigureDBContext(builder);
 builder.Services.ConfigureIdentity();
+
+Console.WriteLine("Environment: " + builder.Environment.EnvironmentName);
+Console.WriteLine("Config Test: " + builder.Configuration["Main:Key"]);
 
 
 builder.Services.ConfigureAuthentication(builder);

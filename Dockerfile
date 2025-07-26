@@ -22,6 +22,13 @@ COPY --from=build /app/publish ./
 #  && echo "🔍 Searching for System.IdentityModel.Tokens.Jwt.dll:" \
 #  && (ls -la /app/System.IdentityModel.Tokens.Jwt.dll && echo "✅ Jwt DLL found") || echo "❌ Jwt DLL NOT found in /app"
 
+RUN dotnet --info \
+ && echo "📂 Contents of /app:" \
+ && ls -la /app \
+ && echo "📄 Checking for config files:" \
+ && (ls /app/appsettings*.json || echo "❌ No config files found")
+
+
 # Runtime settings
 ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
