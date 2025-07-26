@@ -158,7 +158,7 @@ namespace MyShopAPI.Controllers
 
             var refreshTokenObj = await _unitOfWork.RefreshTokens.Get(token => token.CustomerId == customer.Id);
 
-            var expirationTime = _configuration.GetSection("RefreshToken:LifeTime").Value;
+            var expirationTime = _configuration.GetSection("RefreshToken")["LifeTime"];
             if (refreshTokenObj != null)
             {
                 _unitOfWork.RefreshTokens.Update(new RefreshToken
@@ -258,7 +258,7 @@ namespace MyShopAPI.Controllers
                 RefreshToken = refreshToken
             }, HttpContext);
 
-            var expirationTime = _configuration.GetSection("RefreshToken:LifeTime").Value;
+            var expirationTime = _configuration.GetSection("RefreshToken")["LifeTime"];
 
             _unitOfWork.RefreshTokens.Update(new RefreshToken
             {
