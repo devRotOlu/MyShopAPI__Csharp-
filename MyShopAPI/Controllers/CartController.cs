@@ -16,9 +16,9 @@ namespace MyShopAPI.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger _logger;
+        private readonly ILogger<CartController> _logger;
 
-        public CartController(IMapper mapper, IUnitOfWork unitOfWork, ILogger logger)
+        public CartController(IMapper mapper, IUnitOfWork unitOfWork, ILogger<CartController> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
