@@ -29,7 +29,6 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddToWishlist([FromBody] AddWishlistDTO item)
         {
-            //DateTime.Now
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var result = await _unitOfWork.Wishlists.Get(listItem => listItem.ProductId == item.ProductId && listItem.CustomerId == item.CustomerId);

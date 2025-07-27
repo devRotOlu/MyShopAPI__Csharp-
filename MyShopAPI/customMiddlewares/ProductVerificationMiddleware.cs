@@ -21,9 +21,8 @@ namespace MyShopAPI.CustomMiddlewares
 
         public async Task Invoke(HttpContext context)
         {
-            try
-            {
-                if (paths.Contains(context.Request.Path))
+         
+                if (context.Request.Method != HttpMethods.Options && paths.Contains(context.Request.Path))
                 {
 
                     var productId = 0;
@@ -54,12 +53,6 @@ namespace MyShopAPI.CustomMiddlewares
                 }
 
                 await _next.Invoke(context);
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
         }
     }
 }

@@ -245,7 +245,7 @@ namespace MyShopAPI.Controllers
 
             var refreshTokenObj = await _unitOfWork.RefreshTokens.Get(token => token.Token == oldToken, include: token => token.Include(token => token.Customer));
 
-            if (refreshTokenObj == null || refreshTokenObj.ExpirationTime.CompareTo(DateTime.Now) < 0)
+            if (refreshTokenObj == null || refreshTokenObj.ExpirationTime.CompareTo(DateTime.UtcNow) < 0)
             {
                 return BadRequest();
             }
@@ -265,7 +265,7 @@ namespace MyShopAPI.Controllers
                 Id = refreshTokenObj.Id,
                 CustomerId = refreshTokenObj.CustomerId,
                 Token = refreshToken,
-                ExpirationTime = DateTime.Now.AddMinutes(Convert.ToDouble(expirationTime))
+                ExpirationTime = DateTime.UtcNow.AddMinutes(Convert.ToDouble(expirationTime))
             });
 
             return Ok();

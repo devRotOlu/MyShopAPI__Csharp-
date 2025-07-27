@@ -14,7 +14,7 @@ namespace MyShopAPI.CustomMiddlewares
 
         public async Task Invoke(HttpContext context)
         {
-            if (context.Request.Path == "/api/MonnifyCheckout/card_charge")
+            if (context.Request.Method != HttpMethods.Options && context.Request.Path == "/api/MonnifyCheckout/card_charge")
             {
                 var rsa = RSAManager.CreateRsaFromPrivateKey();
 

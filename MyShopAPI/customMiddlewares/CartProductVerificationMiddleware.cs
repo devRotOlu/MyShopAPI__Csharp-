@@ -1,9 +1,7 @@
 ﻿using MyShopAPI.Core.DTOs.CartDTOs;
 using MyShopAPI.Core.DTOs.ProductReviewDTOs;
 using MyShopAPI.Data.Entities;
-using Newtonsoft.Json;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace MyShopAPI.CustomMiddlewares
 {
@@ -23,7 +21,7 @@ namespace MyShopAPI.CustomMiddlewares
 
         public async Task Invoke(HttpContext context)
         {
-            if (paths.Contains(context.Request.Path))
+            if (context.Request.Method != HttpMethods.Options && paths.Contains(context.Request.Path))
             {
                 var dataString = await ReadRequest(context);
 
@@ -32,26 +30,26 @@ namespace MyShopAPI.CustomMiddlewares
                 Func<Cart, bool> verifyItem = null;
                 Expression<Func<Cart, bool>> query = null;
 
-                    if (context.Request.Path == "/api/Cart/update_item")
-                    {
-                        (_customerId, _productId) = GetPropertyValue<UpdateCartDTO>(dataString, "CustomerId", "ProductId");
-                        verifyItem = cartItem => cartItem == null;
-                        query = cart => cart.CustomerId == (string)_customerId && cart.ProductId == (int)_productId;
-                    }
+                if (context.Request.Path == "/api/Cart/update_item")
+                {
+                    (_customerId, _productId) = GetPropertyValue<UpdateCartDTO>(dataString, "CustomerId", "ProductId");
+                    verifyItem = cartItem => cartItem == null;
+                    query = cart => cart.CustomerId == (string)_customerId && cart.ProductId == (int)_productId;
+                }
 
-                    if (context.Request.Path == "/api/Product/add-review")
-                    {
-                        (_customerId, _productId) = GetPropertyValue<AddReviewDTO>(dataString, "ReviewerId", "ProductId");
-                        query = cart => cart.ProductId == (int)_productId && cart.CustomerId == (string)_customerId && cart.IsPurchased != 0;
-                        verifyItem = cartItem => cartItem == null;
-                    }
+                if (context.Request.Path == "/api/Product/add-review")
+                {
+                    (_customerId, _productId) = GetPropertyValue<AddReviewDTO>(dataString, "ReviewerId", "ProductId");
+                    query = cart => cart.ProductId == (int)_productId && cart.CustomerId == (string)_customerId && cart.IsPurchased != 0;
+                    verifyItem = cartItem => cartItem == null;
+                }
 
-                    var _unitOfWork = GetUnitOfWOrk(context);
+                var _unitOfWork = GetUnitOfWOrk(context);
 
-                    var cartItem = await _unitOfWork.Carts.Get(query);
+                var cartItem = await _unitOfWork.Carts.Get(query);
 
-                    VerifyItem(verifyItem!, cartItem);
-           
+                VerifyItem(verifyItem!, cartItem);
+
                 //else if (context.Request.Path == "/api/Cart/add_item")
                 //{
                 //    (_customerId, _productId) = GetPropertyValue<AddCartDTO>(dataString, "CustomerId", "ProductId");

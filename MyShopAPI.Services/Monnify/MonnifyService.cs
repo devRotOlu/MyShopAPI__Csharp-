@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using MyShopAPI.Data.Entities;
+using MyShopAPI.Helpers;
 using MyShopAPI.Services.Errors;
 using MyShopAPI.Services.Models.Monnify;
 using MyShopAPI.Services.Models.Monnify.BankTransfer;
@@ -42,13 +42,13 @@ namespace MyShopAPI.Services.Monnify
             token = authResponse!.ResponseBody.AccessToken;
         }
 
-        public async Task<InitialTransactionResponse> InitilaizeTransaction(string cutomerEmail,float amount)
+        public async Task<InitialTransactionResponse> InitilaizeTransaction(string cutomerEmail, float amount)
         {
             var httpClient = InitializeHTTPClient();
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var dateTime = DateTime.Now;
+            var dateTime = DateTimeManager.GetNativeDateTime();
 
             var requestContent = new InitialTransactionRequest
             {
@@ -99,7 +99,7 @@ namespace MyShopAPI.Services.Monnify
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var result = await SendRequest<TransactionStatus>(httpClient, $"/api/v2/transactions/{transactionRef}", null, "",HttpMethod.Get);
+            var result = await SendRequest<TransactionStatus>(httpClient, $"/api/v2/transactions/{transactionRef}", null, "", HttpMethod.Get);
 
             return result!;
         }
@@ -111,7 +111,7 @@ namespace MyShopAPI.Services.Monnify
             return httpClient;
         }
 
-        private async Task<T?> SendRequest<T>(HttpClient httpClient, string url, Encoding? encoding, string requestContent,HttpMethod httpMethod) 
+        private async Task<T?> SendRequest<T>(HttpClient httpClient, string url, Encoding? encoding, string requestContent, HttpMethod httpMethod)
         {
             HttpRequestMessage request = new HttpRequestMessage(httpMethod, url);
             request.Content = new StringContent(requestContent, encoding, "application/json");
