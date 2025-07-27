@@ -16,11 +16,13 @@ namespace MyShopAPI.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger _logger;
 
-        public CartController(IMapper mapper, IUnitOfWork unitOfWork)
+        public CartController(IMapper mapper, IUnitOfWork unitOfWork, ILogger logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _logger = logger;
         }
 
         [HttpPost("add_item")]
@@ -29,29 +31,71 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddToCart([FromBody] AddCartDTO item)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var result = await _unitOfWork.Carts.Get(cart => cart.ProductId == item.ProductId && cart.CustomerId == item.CustomerId);
-
-            if (result == null)
+            try
             {
-                var cartItem = _mapper.Map<Cart>(item);
+                var result = await _unitOfWork.Carts.Get(
+                    cart => cart.ProductId == item.ProductId && cart.CustomerId == item.CustomerId);
 
-                await _unitOfWork.Carts.Insert(cartItem);
+                if (result == null)
+                {
+                    var cartItem = _mapper.Map<Cart>(item);
+
+                    await _unitOfWork.Carts.Insert(cartItem);
+                }
+                else
+                {
+                    result.Quantity = item.Quantity;
+                    result.DeletedAt = null;
+                    result.AddedAt = DateTimeManager.GetNativeDateTime();
+
+                    _unitOfWork.Carts.Update(result);
+                }
+
+                await _unitOfWork.Save();
+
+                return Created(string.Empty, null); // Created() overload requires URI or object
             }
-            else
+            catch (Exception ex)
             {
-                result.Quantity = item.Quantity;
-                result.DeletedAt = null;
-                result.AddedAt = DateTimeManager.GetNativeDateTime();
+                _logger.LogError(ex, "An error occurred while trying to add an item to cart. ProductId: {ProductId}, CustomerId: {CustomerId}",
+                    item.ProductId, item.CustomerId);
 
-                _unitOfWork.Carts.Update(result);
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
             }
-
-            await _unitOfWork.Save();
-
-            return Created();
         }
+
+        //[HttpPost("add_item")]
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        //public async Task<IActionResult> AddToCart([FromBody] AddCartDTO item)
+        //{
+        //    if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        //    var result = await _unitOfWork.Carts.Get(cart => cart.ProductId == item.ProductId && cart.CustomerId == item.CustomerId);
+
+        //    if (result == null)
+        //    {
+        //        var cartItem = _mapper.Map<Cart>(item);
+
+        //        await _unitOfWork.Carts.Insert(cartItem);
+        //    }
+        //    else
+        //    {
+        //        result.Quantity = item.Quantity;
+        //        result.DeletedAt = null;
+        //        result.AddedAt = DateTimeManager.GetNativeDateTime();
+
+        //        _unitOfWork.Carts.Update(result);
+        //    }
+
+        //    await _unitOfWork.Save();
+
+        //    return Created();
+        //}
 
         [HttpPost("add_items")]
         [ProducesResponseType(StatusCodes.Status201Created)]
