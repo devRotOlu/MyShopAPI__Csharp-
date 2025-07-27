@@ -60,7 +60,7 @@ namespace MyShopAPI.Controllers
             {
                 var clientURL = Request.GetClientURL(_configuration["EmailConfirmation"]!);
 
-                await _authManager.GenerateEmailConfirmationTokenAsync(user, signUpDTO.FirstName,clientURL);
+                await _authManager.GenerateEmailConfirmationTokenAsync(user, signUpDTO.FirstName, clientURL);
             }
             catch
             {
@@ -118,7 +118,7 @@ namespace MyShopAPI.Controllers
 
             var clientURL = Request.GetClientURL(_configuration["EmailConfirmation"]!);
 
-            await _authManager.GenerateEmailConfirmationTokenAsync(user, user.Details.FirstName,clientURL);
+            await _authManager.GenerateEmailConfirmationTokenAsync(user, user.Details.FirstName, clientURL);
 
             return Ok("Check your email for validation.");
         }
@@ -205,7 +205,7 @@ namespace MyShopAPI.Controllers
 
             var clientURL = Request.GetClientURL(_configuration["PasswordResetRoute"]!);
 
-            await _authManager.GenerateForgotPasswordTokenAsync(user, user.Details.FirstName,clientURL);
+            await _authManager.GenerateForgotPasswordTokenAsync(user, user.Details.FirstName, clientURL);
 
             return NoContent();
         }
@@ -394,7 +394,7 @@ namespace MyShopAPI.Controllers
                 return BadRequest();
             }
 
-            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(expression:profile => profile.CustomerId == userId && profile.IsDeleted != true).ToListAsync();
+            var profiles = await _unitOfWork.DeliveryProfiles.GetAll(expression: profile => profile.CustomerId == userId && profile.IsDeleted != true).ToListAsync();
 
             var profileDTOs = _mapper.Map<IEnumerable<DeliveryProfileDTO>>(profiles);
 

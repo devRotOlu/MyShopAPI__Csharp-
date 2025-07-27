@@ -10,7 +10,7 @@ namespace MyShopAPI.Data.Entities
         [Required]
         public string OrderId { get; set; } = GenerateOrderId();
         [Required]
-        public DateTime OrderDate { get; set; } = DateTime.Today;
+        public DateTime OrderDate { get; set; } 
         public IEnumerable<CartOrder> CartItems { get; set; } = null!;
         [Required, ForeignKey("DeliveryProfile")]
         public int DeliveryProfileId { get; set; }

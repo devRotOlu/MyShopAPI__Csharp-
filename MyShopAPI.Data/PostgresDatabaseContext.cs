@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using MyShopAPI.Data.ApplicationDBContext;
 using MyShopAPI.Data.Configuration;
 using MyShopAPI.Data.Entities;
+using System.Reflection.Emit;
 using OtherAttribute = MyShopAPI.Data.Entities.Attribute;
 
 namespace MyShopAPI.Data
@@ -56,6 +57,10 @@ namespace MyShopAPI.Data
 
             builder.Entity<ProductReview>()
                 .ToTable(tb => tb.HasTrigger("SomeTrigger"));
+
+            builder.Entity<CustomerOrder>()
+                    .Property(o => o.OrderDate)
+                    .HasColumnType("timestamp without time zone");
         }
     }
 

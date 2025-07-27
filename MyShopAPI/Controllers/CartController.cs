@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MyShopAPI.Core.DTOs.CartDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
-using Polly;
+using MyShopAPI.Helpers;
 
 namespace MyShopAPI.Controllers
 {
@@ -31,7 +31,7 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var result = await _unitOfWork.Carts.Get(cart=>cart.ProductId == item.ProductId && cart.CustomerId == item.CustomerId);
+            var result = await _unitOfWork.Carts.Get(cart => cart.ProductId == item.ProductId && cart.CustomerId == item.CustomerId);
 
             if (result == null)
             {
@@ -43,9 +43,9 @@ namespace MyShopAPI.Controllers
             {
                 result.Quantity = item.Quantity;
                 result.DeletedAt = null;
-                result.AddedAt = DateTime.Now;
+                result.AddedAt = DateTimeManager.GetNativeDateTime();
 
-                _unitOfWork.Carts.Update(result); 
+                _unitOfWork.Carts.Update(result);
             }
 
             await _unitOfWork.Save();
@@ -84,7 +84,7 @@ namespace MyShopAPI.Controllers
                 {
                     existingItem.Quantity = item.Quantity;
                     existingItem.DeletedAt = null;
-                    existingItem.AddedAt = DateTime.Now;
+                    existingItem.AddedAt = DateTimeManager.GetNativeDateTime();
                     _unitOfWork.Carts.Update(existingItem);
                 }
             }
@@ -168,7 +168,7 @@ namespace MyShopAPI.Controllers
 
             // soft delete
             cartItem.Quantity = 0;
-            cartItem.DeletedAt = DateTime.Now;   
+            cartItem.DeletedAt = DateTimeManager.GetNativeDateTime();
             _unitOfWork.Carts.Update(cartItem);
             await _unitOfWork.Save();
             return Ok();
@@ -184,29 +184,31 @@ namespace MyShopAPI.Controllers
         {
             if (cartId <= 0) return BadRequest();
 
-            var cartItem = await _unitOfWork.Carts.Get(item=>item.Id == cartId);
+            var cartItem = await _unitOfWork.Carts.Get(item => item.Id == cartId);
 
             if (cartItem == null) return NotFound();
 
             var item = await _unitOfWork.Wishlists
-                .Get(item=>item.CustomerId == cartItem.CustomerId && item.ProductId == cartItem.ProductId);
+                .Get(item => item.CustomerId == cartItem.CustomerId && item.ProductId == cartItem.ProductId);
 
-            if(item == null)
+            var _dateTime = DateTimeManager.GetNativeDateTime();
+
+            if (item == null)
             {
                 var wishlitItem = new Wishlist
                 {
                     CustomerId = cartItem.CustomerId,
                     ProductId = cartItem.ProductId,
-                    AddedAt = DateTime.Now,
+                    AddedAt = _dateTime,
                 };
                 await _unitOfWork.Wishlists.Insert(wishlitItem);
             }
-            else if (item.isDeleted) 
-            { 
-               item.isDeleted= false;
-               item.DeletedAt = null;
-               item.AddedAt = DateTime.Now;
-               _unitOfWork.Wishlists.Update(item);
+            else if (item.isDeleted)
+            {
+                item.isDeleted = false;
+                item.DeletedAt = null;
+                item.AddedAt = _dateTime;
+                _unitOfWork.Wishlists.Update(item);
             }
             else
             {
@@ -214,7 +216,7 @@ namespace MyShopAPI.Controllers
             }
 
             cartItem.Quantity = 0;
-            cartItem.DeletedAt = DateTime.Now;
+            cartItem.DeletedAt = _dateTime;
             _unitOfWork.Carts.Update(cartItem);
             await _unitOfWork.Save();
             return Ok("Moved to wishlist");

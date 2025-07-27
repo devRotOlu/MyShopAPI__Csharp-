@@ -6,6 +6,7 @@ using MyShopAPI.Core.DTOs.WishlistDTOs;
 using MyShopAPI.Core.EntityDTO.WishlistDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
+using MyShopAPI.Helpers;
 
 namespace MyShopAPI.Controllers
 {
@@ -28,6 +29,7 @@ namespace MyShopAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddToWishlist([FromBody] AddWishlistDTO item)
         {
+            //DateTime.Now
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var result = await _unitOfWork.Wishlists.Get(listItem => listItem.ProductId == item.ProductId && listItem.CustomerId == item.CustomerId);
@@ -42,7 +44,7 @@ namespace MyShopAPI.Controllers
             {
                 result.isDeleted = false;
 
-                result.AddedAt = DateTime.Now;
+                result.AddedAt = DateTimeManager.GetNativeDateTime();
 
                 _unitOfWork.Wishlists.Update(result);
             }
@@ -87,7 +89,7 @@ namespace MyShopAPI.Controllers
             if (item == null) return BadRequest();
 
             item.isDeleted = true;
-            item.DeletedAt = DateTime.Now;
+            item.DeletedAt = DateTimeManager.GetNativeDateTime();
 
             _unitOfWork.Wishlists.Update(item);
 

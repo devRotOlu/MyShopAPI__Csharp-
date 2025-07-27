@@ -10,6 +10,7 @@ using MyShopAPI.Core.DTOs.UserDTOs;
 using MyShopAPI.Core.DTOs.WishlistDTOs;
 using MyShopAPI.Core.EntityDTO.WishlistDTOs;
 using MyShopAPI.Data.Entities;
+using MyShopAPI.Helpers;
 using OtherAttribute = MyShopAPI.Data.Entities.Attribute;
 
 namespace MyShopAPI.Core.Configurations
@@ -18,6 +19,7 @@ namespace MyShopAPI.Core.Configurations
     {
         public MapperInitializer()
         {
+            var _dateTime = DateTimeManager.GetNativeDateTime();
             CreateMap<SignUpDTO, Customer>()
                 .ForMember(dest => dest.PhoneNumber, opt => opt.Ignore());
             CreateMap<CustomerDetails, CustomerDTO>().ReverseMap();
@@ -29,10 +31,10 @@ namespace MyShopAPI.Core.Configurations
                       .ForMember(getCartDTO => getCartDTO.CartQuantity, opt => opt.MapFrom(cart => cart.Quantity));
             CreateMap<Wishlist, AddWishlistDTO>()
                 .ReverseMap()
-                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTime.Now));
+                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => _dateTime));
             CreateMap<Cart, AddCartDTO>()
                 .ReverseMap()
-                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTime.Now));
+                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => _dateTime));
             CreateMap<Wishlist, UpdateCartDTO>().ReverseMap();
             CreateMap<Wishlist, GetWishlistDTO>();
             CreateMap<Product, AddProductDTO>().ReverseMap();
