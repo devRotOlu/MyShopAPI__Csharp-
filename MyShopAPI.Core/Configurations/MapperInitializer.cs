@@ -30,10 +30,10 @@ namespace MyShopAPI.Core.Configurations
                       .ForMember(getCartDTO => getCartDTO.CartQuantity, opt => opt.MapFrom(cart => cart.Quantity));
             CreateMap<Wishlist, AddWishlistDTO>()
                 .ReverseMap()
-                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTimeManager.GetNativeDateTime()));
+                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
             CreateMap<Cart, AddCartDTO>()
                 .ReverseMap()
-                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTimeManager.GetNativeDateTime()));
+                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
             CreateMap<Wishlist, UpdateCartDTO>().ReverseMap();
             CreateMap<Wishlist, GetWishlistDTO>();
             CreateMap<Product, AddProductDTO>().ReverseMap();
@@ -42,13 +42,13 @@ namespace MyShopAPI.Core.Configurations
             CreateMap<ProductImage, ImageDTO>().ReverseMap();
             CreateMap<ProductReview, AddReviewDTO>().ReverseMap();
             CreateMap<ProductReview, ReviewDTO>()
-                .ForMember(dest => dest.ReviewDate, opt => opt.MapFrom(src => src.ReviewDate.ToString("yyyy-MM-dd")))
+                .ForMember(dest => dest.ReviewDate, opt => opt.MapFrom(src => DateTimeManager.ConvertToLocalTime(src.ReviewDate).ToString("yyyy-MM-dd")))
                 .ReverseMap();
             CreateMap<DeliveryProfile, AddDeliveryProfileDTO>().ReverseMap();
             CreateMap<DeliveryProfile, DeliveryProfileDTO>().ReverseMap();
             CreateMap<CustomerOrder, GetOrderDTO>()
                 .ForMember(orderDTO => orderDTO.OrderedItems, opt => opt.MapFrom(order => order.CartItems))
-                .ForMember(orderDTO => orderDTO.OrderDate,opt=>opt.MapFrom(src=>src.OrderDate.ToString("yyyy-MM-dd")));
+                .ForMember(orderDTO => orderDTO.OrderDate,opt=>opt.MapFrom(src=>DateTimeManager.ConvertToLocalTime(src.OrderDate).ToString("yyyy-MM-dd")));
             CreateMap<CustomerOrder, AddOrderDTO>().ReverseMap();
             CreateMap<CartOrder, CartOrderDTO>().ReverseMap();
             CreateMap<Category, GetCategoryDTO>().ReverseMap();

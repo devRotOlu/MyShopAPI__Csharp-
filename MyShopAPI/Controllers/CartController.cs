@@ -49,7 +49,7 @@ namespace MyShopAPI.Controllers
                 {
                     result.Quantity = item.Quantity;
                     result.DeletedAt = null;
-                    result.AddedAt = DateTimeManager.GetNativeDateTime();
+                    result.AddedAt = DateTime.UtcNow;
 
                     _unitOfWork.Carts.Update(result);
                 }
@@ -128,7 +128,7 @@ namespace MyShopAPI.Controllers
                 {
                     existingItem.Quantity = item.Quantity;
                     existingItem.DeletedAt = null;
-                    existingItem.AddedAt = DateTimeManager.GetNativeDateTime();
+                    existingItem.AddedAt = DateTime.UtcNow;
                     _unitOfWork.Carts.Update(existingItem);
                 }
             }
@@ -212,7 +212,7 @@ namespace MyShopAPI.Controllers
 
             // soft delete
             cartItem.Quantity = 0;
-            cartItem.DeletedAt = DateTimeManager.GetNativeDateTime();
+            cartItem.DeletedAt = DateTime.UtcNow;
             _unitOfWork.Carts.Update(cartItem);
             await _unitOfWork.Save();
             return Ok();
@@ -235,7 +235,7 @@ namespace MyShopAPI.Controllers
             var item = await _unitOfWork.Wishlists
                 .Get(item => item.CustomerId == cartItem.CustomerId && item.ProductId == cartItem.ProductId);
 
-            var _dateTime = DateTimeManager.GetNativeDateTime();
+            var _dateTime = DateTime.UtcNow;
 
             if (item == null)
             {

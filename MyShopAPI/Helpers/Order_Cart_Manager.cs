@@ -15,7 +15,7 @@ namespace MyShopAPI.Helpers
 
             var items = await _unitOfWork.Carts.GetAll(expression: item => item.CustomerId == customer.Id && item.Quantity != 0).ToListAsync();
 
-            var _datetime = DateTimeManager.GetNativeDateTime();
+            var _datetime = DateTime.UtcNow;
 
             var order = new CustomerOrder();
 

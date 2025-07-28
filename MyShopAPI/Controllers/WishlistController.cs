@@ -43,7 +43,7 @@ namespace MyShopAPI.Controllers
             {
                 result.isDeleted = false;
 
-                result.AddedAt = DateTimeManager.GetNativeDateTime();
+                result.AddedAt = DateTime.UtcNow;
 
                 _unitOfWork.Wishlists.Update(result);
             }
@@ -88,7 +88,7 @@ namespace MyShopAPI.Controllers
             if (item == null) return BadRequest();
 
             item.isDeleted = true;
-            item.DeletedAt = DateTimeManager.GetNativeDateTime();
+            item.DeletedAt = DateTime.UtcNow;
 
             _unitOfWork.Wishlists.Update(item);
 

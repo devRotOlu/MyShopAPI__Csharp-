@@ -48,7 +48,7 @@ namespace MyShopAPI.Services.Monnify
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var dateTime = DateTimeManager.GetNativeDateTime();
+            var dateTime = DateTime.UtcNow;
 
             var requestContent = new InitialTransactionRequest
             {
