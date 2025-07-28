@@ -1,9 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MyShopAPI.Data.Entities
 {
-    [PrimaryKey(nameof(OrderId), nameof(ProductId), nameof(CustomerId))]
+    //[PrimaryKey(nameof(OrderId), nameof(ProductId), nameof(CustomerId))]
     public class CartOrder
     {
         [ForeignKey("CustomerOrder")]

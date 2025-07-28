@@ -1,10 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MyShopAPI.Data.Entities
 {
-    [PrimaryKey(nameof(CustomerId), nameof(ProductId))]
+    //[PrimaryKey(nameof(CustomerId), nameof(ProductId))]
     public class ChoiceProduct
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

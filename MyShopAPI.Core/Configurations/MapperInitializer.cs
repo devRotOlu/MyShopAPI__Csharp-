@@ -19,7 +19,6 @@ namespace MyShopAPI.Core.Configurations
     {
         public MapperInitializer()
         {
-            var _dateTime = DateTimeManager.GetNativeDateTime();
             CreateMap<SignUpDTO, Customer>()
                 .ForMember(dest => dest.PhoneNumber, opt => opt.Ignore());
             CreateMap<CustomerDetails, CustomerDTO>().ReverseMap();
@@ -31,10 +30,10 @@ namespace MyShopAPI.Core.Configurations
                       .ForMember(getCartDTO => getCartDTO.CartQuantity, opt => opt.MapFrom(cart => cart.Quantity));
             CreateMap<Wishlist, AddWishlistDTO>()
                 .ReverseMap()
-                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => _dateTime));
+                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTimeManager.GetNativeDateTime()));
             CreateMap<Cart, AddCartDTO>()
                 .ReverseMap()
-                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => _dateTime));
+                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => DateTimeManager.GetNativeDateTime()));
             CreateMap<Wishlist, UpdateCartDTO>().ReverseMap();
             CreateMap<Wishlist, GetWishlistDTO>();
             CreateMap<Product, AddProductDTO>().ReverseMap();

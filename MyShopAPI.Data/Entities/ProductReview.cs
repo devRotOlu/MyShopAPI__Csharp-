@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MyShopAPI.Data.Entities
 {
-    [PrimaryKey(nameof(ReviewerId), nameof(ProductId),nameof(OrderId))]
+    //[PrimaryKey(nameof(ReviewerId), nameof(ProductId),nameof(OrderId))]
     public class ProductReview
     {
         [Required, ForeignKey(" Reviewer")]

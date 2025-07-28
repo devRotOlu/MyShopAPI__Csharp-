@@ -1,10 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MyShopAPI.Data.Entities
 {
-    [PrimaryKey(nameof(AttributeId), nameof(ProductId))]
+    //[PrimaryKey(nameof(AttributeId), nameof(ProductId))]
     public class ProductAttribute
     {
         [ForeignKey("Attribute")]
