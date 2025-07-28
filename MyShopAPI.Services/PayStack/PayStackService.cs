@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using MyShopAPI.Services.Errors;
 using PayStack.Net;
-using System.Threading.Channels;
 
 namespace MyShopAPI.Services.PayStack
 {
@@ -27,7 +26,7 @@ namespace MyShopAPI.Services.PayStack
                 Email = email,
                 Currency = "NGN",
                 CallbackUrl = _configuration["Paystack:CallbackUrl"],
-                Channels= new string[]{"card"}
+                Channels = new string[] { "card" }
             };
 
             var response = _payStackApi.Transactions.Initialize(payStackRequest);
