@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MyShopAPI.Core.DTOs.ProductReviewDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
+using System.Text.Json;
 
 namespace MyShopAPI.Controllers
 {
@@ -15,11 +16,13 @@ namespace MyShopAPI.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<ReviewController> _logger;
 
-        public ReviewController(IMapper mapper, IUnitOfWork unitOfWork)
+        public ReviewController(IMapper mapper, IUnitOfWork unitOfWork, ILogger<ReviewController> logger)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         [HttpPost("add-review")]
@@ -30,6 +33,7 @@ namespace MyShopAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
+                _logger.LogInformation("Object is {0}",JsonSerializer.Serialize(reviewDTO));
                 return BadRequest(ModelState);
             }
 
