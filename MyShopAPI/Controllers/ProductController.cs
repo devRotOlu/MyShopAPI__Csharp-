@@ -211,7 +211,7 @@ namespace MyShopAPI.Controllers
 
             var products = await _unitOfWork.Products.GetAll(product => EF.Functions.ILike(product.Name, $"%{searchTerm}%") || EF.Functions.ILike(product.Category.Name, $"%{searchTerm}%"), include: product => product.Include(product => product.Images)).ToListAsync();
 
-            var brands = await _unitOfWork.ProductAttributes.GetAll(attribute => attribute.Attribute.Name == "brand" &&
+            var brands = await _unitOfWork.ProductAttributes.GetAll(attribute => attribute.Attribute.Name == "Brand" &&
                 EF.Functions.ILike(attribute.Value, $"%{searchTerm}%"), include: attribute => attribute.Include(attribute => attribute.Attribute))
                     .Select(attribute => attribute.Value)
                     .Distinct()
