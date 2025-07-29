@@ -20,6 +20,6 @@ namespace MyShopAPI.Data.Entities
         public string Review { get; set; } = null!;
         [Required, Precision(3, 2)]
         public decimal Rating { get; set; }
-        public DateTime ReviewDate { get; set; } = DateTime.Today;
+        public DateTime ReviewDate { get; set; } 
     }
 }

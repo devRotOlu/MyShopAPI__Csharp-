@@ -40,7 +40,9 @@ namespace MyShopAPI.Core.Configurations
             CreateMap<GetProductDTO, Product>().ReverseMap();
             CreateMap<Product, BaseGetProductDTO>().ReverseMap();
             CreateMap<ProductImage, ImageDTO>().ReverseMap();
-            CreateMap<ProductReview, AddReviewDTO>().ReverseMap();
+            CreateMap<ProductReview, AddReviewDTO>()
+                .ReverseMap()
+                .ForMember(dest=>dest.ReviewDate,opt=>opt.MapFrom(src=>DateTime.UtcNow));
             CreateMap<ProductReview, ReviewDTO>()
                 .ForMember(dest => dest.ReviewDate, opt => opt.MapFrom(src => DateTimeManager.ConvertToLocalTime(src.ReviewDate).ToString("yyyy-MM-dd")))
                 .ReverseMap();
