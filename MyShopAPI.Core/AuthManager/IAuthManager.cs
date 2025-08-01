@@ -26,5 +26,6 @@ namespace MyShopAPI.Core.AuthManager
         void SetTokenInCookies(Tokens tokens, HttpContext context);
         Task<TokenValidationResult> ValidateToken(string accessToken);
         Task<IdentityResult> DeleteAccount(Customer user);
+        void InvalidateTokenInCookies(HttpContext context);
     }
 }

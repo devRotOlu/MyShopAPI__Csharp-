@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using MyShopAPI.Core.DTOs.CartDTOs;
 using MyShopAPI.Core.IRepository;
 using MyShopAPI.Data.Entities;
-using MyShopAPI.Helpers;
 
 namespace MyShopAPI.Controllers
 {

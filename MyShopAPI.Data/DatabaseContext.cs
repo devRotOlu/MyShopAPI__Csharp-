@@ -66,11 +66,7 @@ namespace MyShopAPI.Data
 
             builder.Entity<ProductReview>()
                 .ToTable(tb => tb.HasTrigger("SomeTrigger"))
-                .HasKey(review => new { review.ReviewerId, review.ProductId, review.OrderId });
-
-            //builder.Entity<CustomerOrder>()
-            //        .Property(o => o.OrderDate)
-            //        .HasColumnType("timestamp without time zone");
+                .HasKey(review => new { review.ReviewerId, review.ProductId});
 
             builder.Entity<CartOrder>()
                 .HasKey(order => new { order.OrderId, order.ProductId, order.CustomerId });

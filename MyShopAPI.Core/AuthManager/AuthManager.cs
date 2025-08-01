@@ -181,31 +181,58 @@ namespace MyShopAPI.Core.AuthManager
             return user;
         }
 
+        private CookieOptions GetAccessToken()
+        {
+            return new CookieOptions
+            {
+                HttpOnly = true,
+                IsEssential = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+            };
+        }
+
+        private CookieOptions GetRefreshToken()
+        {
+            return new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+            };
+        }
+
+        public void InvalidateTokenInCookies(HttpContext context)
+        {
+            var accessToken = GetAccessToken();
+            accessToken.Expires = DateTime.UtcNow.AddMinutes(-5);
+            context.Response.Cookies.Append("accessToken", "", accessToken);
+
+            var refreshToken = GetRefreshToken();
+            refreshToken.Expires = DateTime.UtcNow.AddMinutes(-5);
+            context.Response.Cookies.Append("RefreshToken","", refreshToken);
+        }
+
         public void SetTokenInCookies(Tokens tokens, HttpContext context)
         {
             var accessTokenLifetime = Convert.ToDouble(_configuration.GetValue<int>("Jwt:Lifetime"));
 
             var accesstokenExpirationTime = DateTime.UtcNow.AddMinutes(accessTokenLifetime);
 
-            context.Response.Cookies.Append("accessToken", tokens.AccessToken!, new CookieOptions
-            {
-                HttpOnly = true,
-                IsEssential = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = accesstokenExpirationTime
-            });
+            var accessToken = GetAccessToken();
+            accessToken.Expires = accesstokenExpirationTime;
+
+            context.Response.Cookies.Append("accessToken", tokens.AccessToken!,accessToken);
+
 
             var refreshTokenLifetime = Convert.ToDouble(_configuration.GetValue<int>("RefreshToken:Lifetime"
                 ));
 
             var refreshtokenExpirationTime = DateTime.UtcNow.AddMinutes(refreshTokenLifetime);
-            context.Response.Cookies.Append("RefreshToken", tokens.RefreshToken!, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                Expires = refreshtokenExpirationTime
-            });
+
+            var refreshToken = GetRefreshToken();
+            refreshToken.Expires = refreshtokenExpirationTime;
+
+            context.Response.Cookies.Append("RefreshToken", tokens.RefreshToken!,refreshToken);
         }
 
         public async Task<TokenValidationResult> ValidateToken(string accessToken)

@@ -57,7 +57,7 @@ namespace MyShopAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            var prevReview = await _unitOfWork.ProductReviews.Get(review => review.ProductId == reviewDTO.ProductId && review.ReviewerId == reviewDTO.ReviewerId && review.OrderId == reviewDTO.OrderId);
+            var prevReview = await _unitOfWork.ProductReviews.Get(review => review.ProductId == reviewDTO.ProductId && review.ReviewerId == reviewDTO.ReviewerId);
 
             if (prevReview == null)
             {
@@ -88,15 +88,15 @@ namespace MyShopAPI.Controllers
             return Ok(reviews);
         }
 
-        [HttpGet("order-reviews")]
+        [HttpGet("user-reviews")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetOrderReviews([FromQuery] int orderId)
+        public async Task<IActionResult> GetUserReviews([FromQuery] string reviewerId)
         {
-            if (orderId <= 0) return BadRequest();
+            if (String.IsNullOrEmpty(reviewerId)) return BadRequest();
 
-            var orderReviews = await _unitOfWork.ProductReviews.GetAll(expression: review => review.OrderId == orderId)
+            var orderReviews = await _unitOfWork.ProductReviews.GetAll(expression: review => review.ReviewerId == reviewerId)
                 .Select(review=> new { review.ProductId,review.Rating,review.Review })
                 .ToListAsync();
 

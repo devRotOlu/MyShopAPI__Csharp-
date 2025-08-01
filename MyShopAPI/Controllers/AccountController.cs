@@ -304,6 +304,9 @@ namespace MyShopAPI.Controllers
                 Response.Cookies.Delete("accessToken");
                 Response.Cookies.Delete("refreshToken");
             }
+
+            _authManager.InvalidateTokenInCookies(HttpContext);
+
             return Ok();
         }
 
