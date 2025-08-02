@@ -29,29 +29,36 @@ namespace MyShopAPI
 
         public static void ConfigureDBContext(this IServiceCollection services, WebApplicationBuilder builder)
         {
-            if (builder.Environment.IsDevelopment())
+            services.AddDbContext<PostgresDatabaseContext>(option =>
             {
-                services.AddDbContext<DatabaseContext>(option =>
-                {
-                    option.UseSqlServer(builder.Configuration.GetConnectionString("sqlconnection"));
-                    option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
-                });
-                var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services);
-                identityBuilder.AddEntityFrameworkStores<DatabaseContext>().AddDefaultTokenProviders();
-                builder.Services.AddScoped<IApplicationDbContext, DatabaseContext>();
+                option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+                option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
+            });
+            var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services); identityBuilder.AddEntityFrameworkStores<PostgresDatabaseContext>().AddDefaultTokenProviders();
+            builder.Services.AddScoped<IApplicationDbContext, PostgresDatabaseContext>();
+            //if (builder.Environment.IsDevelopment())
+            //{
+            //    services.AddDbContext<DatabaseContext>(option =>
+            //    {
+            //        option.UseSqlServer(builder.Configuration.GetConnectionString("sqlconnection"));
+            //        option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
+            //    });
+            //    var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services);
+            //    identityBuilder.AddEntityFrameworkStores<DatabaseContext>().AddDefaultTokenProviders();
+            //    builder.Services.AddScoped<IApplicationDbContext, DatabaseContext>();
 
-            }
-            else
-            {
-                services.AddDbContext<PostgresDatabaseContext>(option =>
-                {
-                    option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-                    option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
-                });
-                var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services); identityBuilder.AddEntityFrameworkStores<PostgresDatabaseContext>().AddDefaultTokenProviders();
-                builder.Services.AddScoped<IApplicationDbContext, PostgresDatabaseContext>();
-            }
-  
+            //}
+            //else
+            //{
+            //    services.AddDbContext<PostgresDatabaseContext>(option =>
+            //    {
+            //        option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+            //        option.ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Log));
+            //    });
+            //    var identityBuilder = new IdentityBuilder(typeof(Customer), typeof(IdentityRole), builder.Services); identityBuilder.AddEntityFrameworkStores<PostgresDatabaseContext>().AddDefaultTokenProviders();
+            //    builder.Services.AddScoped<IApplicationDbContext, PostgresDatabaseContext>();
+            //}
+
 
         }
 
